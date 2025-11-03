@@ -10,10 +10,9 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    // Simple login logic - in production, you'd validate against a backend
     if (email && password) {
       localStorage.setItem('isLoggedIn', 'true')
-      router.push('/')
+      router.push('/dashboard')
     }
   }
 

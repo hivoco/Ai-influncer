@@ -1,0 +1,150 @@
+export const API_BASE = "http://192.168.1.11:8000";
+// "http://localhost:8000";
+export const getCampaignPrompts = async (id: string) => {
+  const data = await fetch(API_BASE + `/prompts/?brand_id=${id}`, {
+    cache: "no-store",
+  });
+  const res = await data.json();
+  return res;
+};
+
+export const getPersona = async (id: string) => {
+  const data = await fetch(API_BASE + `/personas/?brand_id=${id}`, {
+    cache: "no-store",
+  });
+  const res = await data.json();
+  return res;
+};
+
+export const generatePost = async () => {
+  const data = await fetch(API_BASE + `/campaigns/generate-posts`, {
+    cache: "no-store",
+  });
+  const res = await data.json();
+  return res;
+};
+
+export const getCampaignById = async (id: string) => {
+  const data = await fetch(API_BASE + `/campaigns/${id}`, {
+    cache: "no-store",
+  });
+  const res = await data.json();
+  return res;
+};
+
+export const genPost = async (input) => {
+  const data = await fetch(API_BASE + `/generator/generate-posts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+    cache: "no-store",
+  });
+  const res = await data.json();
+  console.log(res);
+  return res;
+};
+
+export async function schedulePost(post_id: string, scheduled_time: string) {
+  const res = await fetch(API_BASE + "/linkdin/schedule/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ post_id, scheduled_time }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) throw new Error("Failed to schedule post");
+  return await res.json();
+}
+
+export async function addNewCampaign(payload) {
+  const res = await fetch(`${API_BASE}/campaigns/`, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => null);
+    throw new Error(
+      `Failed to create campaign: ${res.status} ${res.statusText}${
+        text ? " — " + text : ""
+      }`
+    );
+  }
+
+  const data = await res.json();
+  return data;
+}
+
+export async function getBrands() {
+  try {
+    const res = await fetch(`${API_BASE}/brands/`, {
+      cache: "no-cache",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch brands");
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching brands:", error);
+    throw error; // Re-throw if you want calling code to handle it
+    // Or return a default value like: return [];
+  }
+}
+
+export async function getLatestCampaigns() {
+  const res = await fetch(`${API_BASE}/campaigns/latest`, {
+    cache: "no-cache",
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch brands");
+  return res.json();
+}
+
+export async function getCampaigns(brandId: string) {
+  const res = await fetch(`${API_BASE}/campaigns?brand_id=${brandId}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to fetch campaigns");
+  return res.json();
+}
+
+export async function getPersonas(brandId: string) {
+  const res = await fetch(`${API_BASE}/personas?brand_id=${brandId}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to fetch personas");
+  return res.json();
+}
+
+export async function genImage(postID: string, payload: any) {
+  const res = await fetch(`${API_BASE}/generator/${postID}/generate-image`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to generate image");
+  return res.json();
+}
+
+export async function createPersonas(payload) {
+  const res = await fetch(`${API_BASE}/personas`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to generate image");
+  return res.json();
+}

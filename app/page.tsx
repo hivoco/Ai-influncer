@@ -124,7 +124,7 @@ export default function LandingPage() {
             </h1>
           </div>
           <button
-            onClick={() => router.push('/login')}
+            onClick={() => router.push(isLoggedIn?"/dashboard":"/login")}
             className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-lg transition duration-300 font-semibold"
           >
             {isLoggedIn ? 'Dashboard' : 'Sign In'}

@@ -1,103 +1,71 @@
 "use client";
-import { schedulePost } from "@/services/apiCalls";
-import { toISTTimestamp } from "@/utilities/posts.utility";
-import {
-  CheckCircle,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Pencil,
-  X,
-} from "lucide-react";
 import { useState } from "react";
-import CustomMarkdown from "./CustomMarkdown";
-import ImageUploader from "./ImageUploader";
-import { useRouter } from "next/navigation";
+import CustomMarkdown from "@/components/CustomMarkdown";
+import ImageUploader from "@/components/ImageUploader";
 import { useStore } from "@/lib/store";
-
-interface PostCardProps {
-  postID: string;
-  markdownText: string;
-  onEdit?: (newText: string) => void;
-  onSchedule?: (scheduleData: ScheduleData) => void;
-}
+import { ChevronDown, ChevronRight, Loader2, X, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { socialMediaPlatforms } from "@/lib/constant";
+import { toISTTimestamp } from "@/utilities/posts.utility";
+import { genImage, schedulePost } from "@/services/apiCalls";
 
 interface ScheduleData {
   date: string;
   time: string;
   platforms: string[];
 }
+const Page = () => {
+  const [files, setFiles] = useState<File[]>([]);
+  const text = useStore((state) => state.data?.currentText);
+  const postID = useStore((state) => state.data?.postID);
 
-export default function PostCard({
-  postID,
-  markdownText,
-  onEdit,
-  onSchedule,
-}: PostCardProps) {
-  const router = useRouter();
-  const { data, setData } = useStore();
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [editedText, setEditedText] = useState(markdownText);
-  const [currentText, setCurrentText] = useState(markdownText);
-  const [displayMarkDown, setDisplayMarkDown] = useState(false);
-  const [displayPostContent, setDisplayPostContent] = useState(true);
-
-  const [ISTTimestamp, setISTTimestamp] = useState<string>("");
-
-  // Scheduled state
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isScheduled, setIsScheduled] = useState(false);
-
-  const [scheduledInfo, setScheduledInfo] = useState<{
-    date: string;
-    time: string;
-    platforms: string[];
-  } | null>(null);
   const [isScheduling, setIsScheduling] = useState(false);
-  const [scheduleError, setScheduleError] = useState<string | null>(null);
 
-  // Schedule form state
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [editedText, setEditedText] = useState(text);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [displayPostContent, setDisplayPostContent] = useState(true);
+  const [displayMarkDown, setDisplayMarkDown] = useState(false);
+  const [currentText, setCurrentText] = useState(text);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
-  const socialMediaPlatforms = [
-    { value: "instagram", label: "Instagram", icon: "📷" },
-    { value: "facebook", label: "Facebook", icon: "👥" },
-    { value: "twitter", label: "Twitter/X", icon: "🐦" },
-    { value: "linkedin", label: "LinkedIn", icon: "💼" },
-    { value: "tiktok", label: "TikTok", icon: "🎵" },
-    { value: "youtube", label: "YouTube Shorts", icon: "▶️" },
-    { value: "reddit", label: "Reddit", icon: "🤖" },
-    { value: "wikipedia", label: "Wikipedia", icon: "📚" },
-  ];
+  const [generatedImageData, setGeneratedImageData] = useState<{
+    image_url: string;
+  } | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
-  const handleEditClick = () => {
-    setEditedText(currentText);
-    setIsEditModalOpen(true);
-    setData({
-      currentText: currentText,
-      postID: postID,
-    });
-    router.push("/edit-post");
-  };
-
-  const handleSave = () => {
-    setCurrentText(editedText);
-    if (onEdit) {
-      onEdit(editedText);
-    }
-    setIsEditModalOpen(false);
-  };
+  const [imageFeedback, setImageFeedback] = useState("");
 
   const handleCancel = () => {
     setEditedText(currentText);
     setIsEditModalOpen(false);
   };
 
-  const handleScheduleClick = () => {
+  const handleScheduleCancel = () => {
+    setScheduleDate("");
+    setScheduleTime("");
+    setSelectedPlatforms([]);
     setScheduleError(null);
+    setIsScheduleModalOpen(false);
+  };
+
+  const handleSave = () => {
+    // setCurrentText(editedText);
+    // if (onEdit) {
+    //   onEdit(editedText);
+    // }
+    setIsEditModalOpen(false);
+  };
+
+  const handleScheduleClick = () => {
+    // setScheduleError(null);
     setIsScheduleModalOpen(true);
   };
 
@@ -124,6 +92,7 @@ export default function PostCard({
 
       try {
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
+        if (!postID) return;
         const res = await schedulePost(postID, istTime);
         console.log(res);
 
@@ -169,105 +138,155 @@ export default function PostCard({
     }
   };
 
-  const handleScheduleCancel = () => {
-    setScheduleDate("");
-    setScheduleTime("");
-    setSelectedPlatforms([]);
-    setScheduleError(null);
-    setIsScheduleModalOpen(false);
-  };
+  const handleGenerateImage = async (regenerate = false) => {
+    if (!postID) return;
 
-  const handleRemoveSchedule = () => {
-    setIsScheduled(false);
-    setScheduledInfo(null);
-  };
+    setIsGenerating(true);
+    try {
+      const data = await genImage(postID, {
+        regenerate,
+        edit_feedback: imageFeedback,
+        provider: "google",
+      });
 
-  const formatScheduledDateTime = () => {
-    if (!scheduledInfo) return "";
-    const date = new Date(`${scheduledInfo.date} ${scheduledInfo.time}`);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+      setGeneratedImageData(data);
+      if (regenerate) setImageFeedback("");
+    } catch (error) {
+      console.error("Error generating image:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const isScheduleValid =
     scheduleDate && scheduleTime && selectedPlatforms.length > 0;
 
   return (
-    <>
-      <div className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative">
-        {/* Scheduled Badge */}
-        {isScheduled && scheduledInfo && (
-          <div className="absolute top-2 left-2 right-12 z-10">
-            <div className="bg-green-100 border border-green-300 rounded-lg p-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-green-700">
-                      Scheduled
-                    </span>
-                    <span className="text-xs text-green-600">
-                      {formatScheduledDateTime()}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={handleRemoveSchedule}
-                  className="text-green-600 hover:text-green-800 ml-2"
-                  title="Cancel schedule"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {scheduledInfo.platforms.length > 0 && (
-                <div className="mt-1 flex gap-1">
-                  {scheduledInfo.platforms.map((platform) => {
-                    const platformData = socialMediaPlatforms.find(
-                      (p) => p.value === platform
-                    );
-                    return platformData ? (
-                      <span
-                        key={platform}
-                        className="text-xs"
-                        title={platformData.label}
-                      >
-                        {platformData.icon}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Header with Edit Icon */}
-        <div className="flex justify-end p-3 border-b border-gray-100">
+    <div className="bg-white w-full min-h-svh flex">
+      <div className="mx-auto container   flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
           <button
-            onClick={handleEditClick}
-            className="text-gray-500 hover:text-indigo-600 transition-colors"
-            title="Edit post"
+            onClick={handleCancel}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <Pencil className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Markdown Content */}
-        <div
-          className={`flex-1 p-4 overflow-y-auto prose prose-sm max-w-none text-gray-700 ${
-            isScheduled ? "pt-14" : ""
-          }`}
-        >
-          {<CustomMarkdown text={currentText} />}
+        {/* Modal Content */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <label
+            onClick={() => setDisplayPostContent((prev) => !prev)}
+            htmlFor="postContent"
+            className="text-sm font-medium text-gray-700 mb-2 flex"
+          >
+            {displayPostContent ? (
+              <ChevronDown size={18} />
+            ) : (
+              <ChevronRight size={18} />
+            )}
+            Post Content (Markdown Supported)
+          </label>
+
+          {displayPostContent && (
+            <textarea
+              id="postContent"
+              value={editedText ? editedText : ""}
+              onChange={(e) => setEditedText(e.target.value)}
+              className="w-full h-50 overflow-y-auto px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 resize-none font-mono text-sm"
+              placeholder="Write your post content here..."
+            />
+          )}
+          <div className="mt-4 py-4 bg-gray-50 rounded-lg prose prose-sm max-w-none text-gray-700">
+            <h3
+              onClick={() => setDisplayMarkDown(!displayMarkDown)}
+              className="text-sm font-semibold text-gray-700 mb-2 flex cursor-pointer"
+            >
+              {displayMarkDown ? (
+                <ChevronDown size={18} />
+              ) : (
+                <ChevronRight size={18} />
+              )}
+              Preview:
+            </h3>
+
+            {displayMarkDown && currentText && (
+              <div className="">
+                <div
+                  className={`flex-1 bg-gray-100 rounded-t-xl max-w-xl mx-auto p-4 overflow-y-auto prose prose-sm  text-gray-700  select-all`}
+                >
+                  {<CustomMarkdown text={currentText} />}
+                </div>
+                {files.length > 0 && (
+                  <div className="relative max-w-xl mx-auto bg-gray-100 rounded-b-xl">
+                    {files.length > 1 && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setCurrentIndex(
+                              (i) => (i - 1 + files.length) % files.length
+                            )
+                          }
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentIndex((i) => (i + 1) % files.length)
+                          }
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10"
+                        >
+                          →
+                        </button>
+                      </>
+                    )}
+                    <Image
+                      width={200}
+                      height={128}
+                      src={URL.createObjectURL(files[currentIndex || 0])}
+                      alt={`Image ${(currentIndex || 0) + 1}`}
+                      className="w-full h-64 object-cover rounded-xl"
+                    />
+                    {files.length > 1 && (
+                      <div className="flex justify-center gap-2 mt-3">
+                        {files.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setCurrentIndex(i)}
+                            className={`w-2 h-2 rounded-full transition ${
+                              i === (currentIndex || 0)
+                                ? "bg-blue-600"
+                                : "bg-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Schedule Button */}
+        {/* Modal Footer */}
+        {/* <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+          <button
+            onClick={handleCancel}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-6 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
+          >
+            Save Changes
+          </button>
+        </div> */}
+
         <div className="p-3 border-t border-gray-100">
           <button
             onClick={handleScheduleClick}
@@ -282,80 +301,92 @@ export default function PostCard({
           </button>
         </div>
       </div>
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl  max-h-[90vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
-              <button
-                onClick={handleCancel}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <label
-                onClick={() => setDisplayPostContent((prev) => !prev)}
-                htmlFor="postContent"
-                className="text-sm font-medium text-gray-700 mb-2 flex"
-              >
-                {displayPostContent ? (
-                  <ChevronDown size={18} />
-                ) : (
-                  <ChevronRight size={18} />
-                )}
-                Post Content (Markdown Supported)
-              </label>
-              {displayPostContent && (
-                <textarea
-                  id="postContent"
-                  value={editedText}
-                  onChange={(e) => setEditedText(e.target.value)}
-                  className="w-full h-50 overflow-y-auto px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 resize-none font-mono text-sm"
-                  placeholder="Write your post content here..."
-                />
-              )}
-              <div className="mt-4 py-4 bg-gray-50 rounded-lg prose prose-sm max-w-none text-gray-700">
-                <h3
-                  onClick={() => setDisplayMarkDown(!displayMarkDown)}
-                  className="text-sm font-semibold text-gray-700 mb-2 flex cursor-pointer"
-                >
-                  {displayMarkDown ? (
-                    <ChevronDown size={18} />
-                  ) : (
-                    <ChevronRight size={18} />
+      {postID && (
+        <aside className="w-1/3 border-l border-gray-300">
+          <ImageUploader postID={postID} files={files} setFiles={setFiles} />
+
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4">
+            {generatedImageData?.image_url ? (
+              <div className="space-y-3">
+                <>
+                  <div
+                    className="relative rounded-lg overflow-hidden cursor-pointer"
+                    onClick={() => setShowOverlay(true)}
+                  >
+                    <Image
+                      src={generatedImageData.image_url}
+                      alt="Generated image"
+                      width={400}
+                      height={400}
+                      className="w-full h-auto"
+                    />
+                  </div>
+
+                  {showOverlay && (
+                    <div
+                      className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 "
+                      onClick={() => setShowOverlay(false)}
+                    >
+                      <Image
+                        src={generatedImageData.image_url}
+                        alt="Generated image"
+                        width={1200}
+                        height={1200}
+                        className="max-w-full max-h-full object-contain "
+                      />
+                    </div>
                   )}
-                  Preview:
-                </h3>
-                {displayMarkDown && <CustomMarkdown text={editedText} />}
+                </>
+
+                <textarea
+                  value={imageFeedback}
+                  onChange={(e) => setImageFeedback(e.target.value)}
+                  placeholder="Describe changes you'd like to make..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm resize-none"
+                  rows={3}
+                />
+
+                <button
+                  onClick={() => handleGenerateImage(true)}
+                  disabled={isGenerating}
+                  className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Regenerate Image
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-            <ImageUploader />
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+            ) : (
               <button
-                onClick={handleCancel}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                onClick={() => handleGenerateImage(false)}
+                disabled={isGenerating}
+                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Cancel
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Generate an Image
+                  </>
+                )}
               </button>
-              <button
-                onClick={handleSave}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
-              >
-                Save Changes
-              </button>
-            </div>
+            )}
           </div>
-        </div>
+        </aside>
       )}
-
       {/* Schedule Modal */}
       {isScheduleModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -391,6 +422,7 @@ export default function PostCard({
                   >
                     Select Date *
                   </label>
+
                   <input
                     type="date"
                     id="scheduleDate"
@@ -512,6 +544,8 @@ export default function PostCard({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
-}
+};
+
+export default Page;
