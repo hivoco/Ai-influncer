@@ -1,136 +1,172 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PostCard from "@/components/PostCard";
 import { Loader2, Plus, X } from "lucide-react";
 import CreatePersonaForm from "@/components/CreatePersonaForm";
 import {
+  addNewCampaign,
+  createPersonas,
   genPost,
   getCampaignById,
   getCampaignPrompts,
   getPersona,
 } from "@/services/apiCalls";
 import { socialMediaPlatforms } from "@/lib/constant";
-
-interface CampaignPrompt {
-  brand_id: string; // UUID format
-  persona_id: string; // UUID format
-  platform_id: string; // UUID format
-  name: string;
-  type: string;
-  prompt_text: string;
-  language: string;
-  version: string; // Semantic versioning format (e.g., "v1.0")
-  is_golden: boolean;
-  notes: string | null;
-  prompt_id: string; // UUID format
-  created_at: string; // ISO 8601 datetime string
-  updated_at: string | null; // ISO 8601 datetime string or null
-}
-
-type CampaignPrompts = CampaignPrompt[];
-
-interface Persona {
-  brand_id: string;
-  persona_name: string;
-  bio: string;
-  tone_formal: number;
-  tone_witty: number;
-  tone_aspirational: number;
-  default_cta: string;
-  default_hashtags: string[];
-  persona_photo_url: string;
-  safety_notes: string;
-  persona_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-type PersonaData = Persona[];
-
-interface Campaign {
-  brand_id: string;
-  name: string;
-  objective: string;
-  persona_id: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  is_new: boolean;
-  campaign_id: string;
-  created_at: string;
-  updated_at: string;
-}
+import CommonModal from "./CommanModal";
+import LoadingOverlay from "../LoadingOverlay";
+import {
+  Campaign,
+  CampaignForm,
+  CampaignPrompt,
+  CampaignPrompts,
+  Persona,
+  PersonaData,
+  PersonaForm,
+  Post,
+} from "@/lib/types";
+import CreateCampaignForm from "../CreateCampaignForm";
+import { useModal } from "@/hooks/useModal";
+import Modal from "../Modal";
 
 export default function GeneratePostsContent() {
+  const postsDivRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const brandId = searchParams.get("brand_id");
   const campaignId = searchParams.get("campaign_id");
+  const [campaignForm, setCampaignForm] = useState<CampaignForm>({
+    brand_id: brandId ? brandId : "",
+    name: "",
+    objective: "",
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: new Date().toISOString().split("T")[0],
+  });
 
-  const [campaignName, setCampaignName] = useState("");
-  const [campaignPrompt, setCampaignPrompt] = useState("");
+  const [personaForm, setPersonaForm] = useState<PersonaForm>({
+    brand_id: brandId ? brandId : "",
+    persona_name: "",
+    bio: "",
+    tone_formal: 0,
+    tone_witty: 0,
+    tone_aspirational: 5,
+    default_cta: "",
+    default_hashtags: [],
+    persona_photo_url:
+      "https://ai-infl-platform.s3.amazonaws.com/persona/904127b5-af1e-11f0-b03d-0a88edf1954d/photo.png",
+    safety_notes: "",
+  });
+
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [selectedPersona, setSelectedPersona] = useState("");
-  const [personas, setPersonas] = useState<Persona[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isShow, setIsShow] = useState(false);
   const [showAddCampaign, setShowAddCampaign] = useState(false);
   const [showAddPersonas, setShowAddPersonas] = useState(false);
 
-  const [personaName, setPersonaName] = useState("");
-  const [personaBio, setPersonaBio] = useState("");
-  const [tone, setTone] = useState(5);
-  const [witty, setWitty] = useState(5);
-  const [aspiration, setAspiration] = useState(5);
-  const [cta, setCta] = useState("");
-  const [safetyNotes, setSafetyNotes] = useState("");
   const [campaignPrompts, setCampaignPrompts] = useState<CampaignPrompts>([]);
   const [personaData, setPersonaData] = useState<PersonaData>([]);
-
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isGeneratingPosts, setIsGeneratingPosts] = useState(false);
-
-  interface Post {
-    campaign_id: string;
-    persona_id: string;
-    platform_id: string;
-    prompt_id: string;
-    title: string;
-    body: string;
-    hashtags: string[];
-    media_url: string | null;
-    kind: string;
-    post_metadata: string | null;
-    status: string;
-    scheduled_at: string | null;
-    published_at: string | null;
-    external_url: string | null;
-    post_id: string;
-    created_at: string;
-    updated_at: string;
-  }
+  const { modalState, showModal, closeModal } = useModal();
 
   const [postsData, setPostsData] = useState<Post[]>([]);
-  const handlePersonaSubmit = (e: React.FormEvent) => {
+
+  const handleCampaignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const res = await addNewCampaign(campaignForm);
+
+      if (res) {
+        setShowAddCampaign(false); // Close the common modal
+        showModal(
+          "Campaign Created Successfully!",
+          `Your campaign "${
+            campaignForm.name
+          }" has been registered successfully. The campaign ID is ${
+            res.campaign_id || "generated"
+          } and it will start from ${campaignForm.start_date}.`,
+          "success"
+        );
+
+        // Reset form
+        setCampaignForm({
+          brand_id: brandId ? brandId : "",
+          name: "",
+          objective: "",
+          start_date: new Date().toISOString().split("T")[0],
+          end_date: new Date().toISOString().split("T")[0],
+        });
+      } else {
+        setShowAddCampaign(false); // Close the common modal
+        showModal(
+          "Campaign Creation Failed",
+          "There was an issue creating your campaign. Please try again later.",
+          "error"
+        );
+      }
+    } catch (error) {
+      setShowAddCampaign(false); // Close the common modal
+      showModal(
+        "Error",
+        "An unexpected error occurred while creating the campaign.",
+        "error"
+      );
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error("An unknown error occurred");
+      }
+    }
   };
 
-  let markdownText = `🚀 **Exciting News!**
-I'm thrilled to share that I've recently [your announcement — e.g., *joined a new company*, *completed a major project*, *launched a product*, or *earned a certification*].
+  const handlePersonaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!brandId) return;
 
-This journey has been filled with learning, collaboration, and growth — and I'm incredibly grateful to everyone who's been part of it. 🙏  
+    try {
+      const data = await createPersonas(personaForm);
 
-Here are a few key takeaways from this experience:
-- 💡 [Insight 1 — something you learned]
-- 🤝 [Insight 2 — collaboration or teamwork lesson]
-- 🌱 [Insight 3 — personal or professional growth]
+      setShowAddPersonas(false); // Close the common modal
+      showModal(
+        "Persona Created Successfully!",
+        `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`,
+        "success"
+      );
 
-I'm looking forward to the next chapter and continuing to [goal — e.g., *build impactful solutions*, *grow in my field*, *contribute to meaningful projects*].
+      // Reset form
+      setPersonaForm({
+        brand_id: brandId ? brandId : "",
+        persona_name: "",
+        bio: "",
+        tone_formal: 0,
+        tone_witty: 0,
+        tone_aspirational: 5,
+        default_cta: "",
+        default_hashtags: [],
+        persona_photo_url: "",
+        safety_notes: "",
+      });
+    } catch (error) {
+      setShowAddPersonas(false); // Close the common modal
+      showModal(
+        "Error",
+        "Failed to create persona. Please try again.",
+        "error"
+      );
+      console.error("Error creating persona:", error);
+    }
+  };
 
-Let's connect and share insights! 👋  
-#growth #learning #career #innovation
-`;
+  useEffect(() => {
+    if (postsData.length && postsDivRef.current) {
+      postsDivRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [postsData.length]);
+
   useEffect(() => {
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -141,8 +177,8 @@ Let's connect and share insights! 👋
 
     const fetchApis = async () => {
       if (brandId) {
-        const list = await getCampaignPrompts(brandId);
-        setCampaignPrompts(list);
+        const campaignList = await getCampaignPrompts(brandId);
+        setCampaignPrompts(campaignList);
         const personaList = await getPersona(brandId);
         setPersonaData(personaList);
       }
@@ -175,7 +211,11 @@ Let's connect and share insights! 👋
       setIsShow(true);
     } catch (error) {
       console.error("Error generating posts:", error);
-      // You might want to add error handling here
+      showModal(
+        "Error",
+        "Failed to generate posts. Please try again.",
+        "error"
+      );
     } finally {
       setIsGeneratingPosts(false);
     }
@@ -205,6 +245,16 @@ Let's connect and share insights! 👋
         </div>
       </header>
 
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        autoClose={modalState.type === "success"}
+        autoCloseDelay={5000}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           {/* Left Side - Form */}
@@ -229,7 +279,6 @@ Let's connect and share insights! 👋
                       type="text"
                       id="campaignName"
                       value={campaign.name}
-                      // onChange={(e) => setCampaignName(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                       readOnly
                     />
@@ -298,7 +347,7 @@ Let's connect and share insights! 👋
                   >
                     <option value="">Select a persona</option>
                     {personaData.map((persona: Persona) => (
-                      <option key={persona.brand_id} value={persona.persona_id}>
+                      <option key={persona.persona_id} value={persona.persona_id}>
                         {persona.persona_name}
                       </option>
                     ))}
@@ -332,7 +381,7 @@ Let's connect and share insights! 👋
           {/* Right Side - Two Sections */}
           <div className="w-96 flex flex-col gap-8 h-screen">
             {/* Top Section - Campaigns/Prompts List */}
-            <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col">
+            {/* <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-y-auto flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800">
                   Campaign Prompts
@@ -346,19 +395,21 @@ Let's connect and share insights! 👋
                 </button>
               </div>
 
-              {campaignPrompts &&
-                campaignPrompts.map((c: CampaignPrompt) => {
-                  return (
-                    <div
-                      className="bg-gray-50 hover:bg-gray-100 px-3 py-1 rounded-md"
-                      key={c.brand_id}
-                    >
-                      <h4 className="text-sm">{c.name}</h4>
-                    </div>
-                  );
-                })}
+              <div className="flex-1 overflow-y-auto">
+                {campaignPrompts &&
+                  campaignPrompts.map((c: CampaignPrompt) => {
+                    return (
+                      <div
+                        className="bg-gray-50 hover:bg-gray-100 px-3 py-3 rounded-md"
+                        key={c.persona_id}
+                      >
+                        <h4 className="text-sm">{c.name}</h4>
+                      </div>
+                    );
+                  })}
+              </div>
 
-              <div className="flex-1 ">
+              <div className="flex-1  overflow-y-auto">
                 {campaign === null ? (
                   <p className="text-gray-500 text-center py-8">
                     No campaigns available
@@ -376,12 +427,6 @@ Let's connect and share insights! 👋
                       <h4 className="font-semibold text-gray-800 mb-2">
                         {campaign.name}
                       </h4>
-                      {/* {c.prompt && (
-                          <p className="text-sm text-gray-600 mb-2">
-                            <span className="font-medium">Prompt:</span>{" "}
-                            {c.prompt}
-                          </p>
-                        )} */}
                       <p className="text-sm text-gray-600">
                         <span className="font-medium">Objective:</span>{" "}
                         {campaign.objective}
@@ -390,7 +435,7 @@ Let's connect and share insights! 👋
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
             {/* Bottom Section - Personas List */}
             <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col">
               <div className="flex items-center justify-between mb-4">
@@ -415,7 +460,7 @@ Let's connect and share insights! 👋
                   <div className="space-y-3">
                     {personaData.map((persona: Persona) => (
                       <div
-                        key={persona.brand_id}
+                        key={persona.persona_id}
                         className={`border rounded-lg p-4 hover:shadow-md transition ${
                           persona.brand_id === selectedPersona
                             ? "border-purple-500 bg-purple-50"
@@ -434,144 +479,40 @@ Let's connect and share insights! 👋
                 )}
               </div>
             </div>
-            {/* Add Campaign Modal */}
-            {showAddCampaign && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ">
-                <div className="bg-white rounded-2xl no-scrollbar shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
-                      Add New Campaign
-                    </h3>
-                    <button
-                      onClick={() => setShowAddCampaign(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <X size={24} />
-                    </button>
-                  </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Campaign title"
-                      />
-                    </div>
+            <CommonModal
+              isOpen={showAddCampaign}
+              onClose={() => setShowAddCampaign(false)}
+              title=""
+            >
+              <CreateCampaignForm
+                handleCampaignSubmit={handleCampaignSubmit}
+                campaignForm={campaignForm}
+                setCampaignForm={setCampaignForm}
+              />
+            </CommonModal>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Type
-                      </label>
-                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Select type</option>
-                        <option value="email">Email</option>
-                        <option value="social">Social Media</option>
-                        <option value="blog">Blog Post</option>
-                        <option value="ad">Advertisement</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Prompts
-                      </label>
-                      <textarea
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                        placeholder="Enter campaign prompts..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Notes
-                      </label>
-                      <textarea
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                        placeholder="Additional notes..."
-                      />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={() => setShowAddCampaign(false)}
-                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Handle form submission here
-                          setShowAddCampaign(false);
-                        }}
-                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                      >
-                        Add Campaign
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {showAddPersonas && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ">
-                <div className="bg-white rounded-2xl no-scrollbar shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto flex justify-between">
-                  <CreatePersonaForm
-                    handlePersonaSubmit={handlePersonaSubmit}
-                    setPersonaName={setPersonaName}
-                    personaName={personaName}
-                    personaBio={personaBio}
-                    setPersonaBio={setPersonaBio}
-                    setTone={setTone}
-                    tone={tone}
-                    witty={witty}
-                    setWitty={setWitty}
-                    aspiration={aspiration}
-                    setAspiration={setAspiration}
-                    setCta={setCta}
-                    cta={cta}
-                    safetyNotes={safetyNotes}
-                    setSafetyNotes={setSafetyNotes}
-                  />
-
-                  <button
-                    onClick={() => setShowAddPersonas(false)}
-                    className="text-gray-400 hover:text-gray-600 self-start"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <CommonModal
+              isOpen={showAddPersonas}
+              onClose={() => setShowAddPersonas(false)}
+              title="Add New Persona"
+            >
+              <CreatePersonaForm
+                handlePersonaSubmit={handlePersonaSubmit}
+                personaForm={personaForm}
+                setPersonaForm={setPersonaForm}
+              />
+            </CommonModal>
           </div>
         </div>
       </div>
 
-      {/* Loading Overlay */}
-      {isGeneratingPosts && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mb-4" />{" "}
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Generating Posts
-              </h3>
-              <p className="text-gray-600 text-center">
-                Please wait while we create amazing content for your campaign...
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
-                <div className="bg-linear-to-r from-indigo-500 to-purple-500 h-full rounded-full animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <LoadingOverlay
+        isOpen={isGeneratingPosts}
+        title="Generating Posts"
+        message="Please wait while we create amazing content for your campaign..."
+        showProgress={true}
+      />
 
       <div
         className={` w-full p-10 ${
@@ -581,7 +522,7 @@ Let's connect and share insights! 👋
         {postsData.length !== 0 &&
           postsData.map((p: Post) => {
             return (
-              <div className="" key={p.post_id}>
+              <div ref={postsDivRef} className="" key={p.post_id}>
                 <PostCard postID={p.post_id} markdownText={p.body} />
               </div>
             );

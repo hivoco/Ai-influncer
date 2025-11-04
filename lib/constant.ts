@@ -9,3 +9,5 @@ export const socialMediaPlatforms = [
     { value: "wikipedia", label: "Wikipedia", icon: "📚" },
 ];
 
+export const EMAIL = "admin@hivoco.com"
+export const PASSWORD = "admin@123"

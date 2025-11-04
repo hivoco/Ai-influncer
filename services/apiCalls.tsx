@@ -1,4 +1,4 @@
-export const API_BASE = " https://backend.thefirstimpression.ai";
+export const API_BASE = "https://backend.thefirstimpression.ai";
 
 // "http://192.168.1.11:8000";
 // "http://localhost:8000";

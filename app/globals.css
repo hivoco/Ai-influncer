@@ -15,7 +15,7 @@
 }
 
 body {
-  user-select: none;
+  /* user-select: none; */
   color: var(--foreground-rgb);
   background: linear-gradient(
       to bottom,
