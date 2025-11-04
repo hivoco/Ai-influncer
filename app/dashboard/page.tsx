@@ -1,7 +1,6 @@
 import Brands from "@/components/Brands";
 import { getBrands, getLatestCampaigns } from "@/services/apiCalls";
-// app/brands/page.tsx
-import React from "react";
+export const dynamic = "force-dynamic"; 
 
 export default async function BrandsPage() {
   const brands = await getBrands();

@@ -56,8 +56,8 @@ export default function BrandDetailPage({
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
 
-  const [personaFarm, setPersonaFarm] = useState({
-    brand_id: brandID,
+  const [personaForm, setPersonaForm] = useState({
+    brand_id: brandID ? brandID : "",
     persona_name: "",
     bio: "",
     tone_formal: 0,
@@ -69,8 +69,6 @@ export default function BrandDetailPage({
       "https://ai-infl-platform.s3.amazonaws.com/persona/904127b5-af1e-11f0-b03d-0a88edf1954d/photo.png",
     safety_notes: "",
   });
-
-  console.log(personaFarm);
 
   // Modal state
   const [modalState, setModalState] = useState({
@@ -162,15 +160,11 @@ export default function BrandDetailPage({
         });
       }
     } catch (error) {
-      // Show error modal for exceptions
-      setModalState({
-        isOpen: true,
-        title: "Error",
-        message: `An unexpected error occurred: ${
-          error.message || "Please try again."
-        }`,
-        type: "error",
-      });
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error("An unknown error occurred");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -183,14 +177,13 @@ export default function BrandDetailPage({
     setModalState({
       isOpen: true,
       title: "Persona Created Successfully!",
-      message: `The persona "${personaFarm.persona_name}" has been created with the following characteristics: Tone (${personaFarm.tone_formal}/10), Witty (${personaFarm.tone_witty}/10), Aspiration (${personaFarm.tone_aspirational}/10).`,
+      message: `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`,
       type: "success",
     });
-    const data = await createPersonas(personaFarm);
-    console.log(data);
+    const data = await createPersonas(personaForm);
 
     // Reset form
-    setPersonaFarm({
+    setPersonaForm({
       brand_id: brandID,
       persona_name: "",
       bio: "",
@@ -410,10 +403,10 @@ export default function BrandDetailPage({
                 <input
                   type="text"
                   id="personaName"
-                  value={personaFarm.persona_name}
+                  value={personaForm.persona_name}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       persona_name: e.target.value,
                     })
                   }
@@ -431,10 +424,10 @@ export default function BrandDetailPage({
                 </label>
                 <textarea
                   id="personaBio"
-                  value={personaFarm.bio}
+                  value={personaForm.bio}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       bio: e.target.value,
                     })
                   }
@@ -449,17 +442,17 @@ export default function BrandDetailPage({
                   htmlFor="tone"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Tone: {personaFarm.tone_formal}
+                  Tone: {personaForm.tone_formal}
                 </label>
                 <input
                   type="range"
                   id="tone"
                   min="1"
                   max="10"
-                  value={personaFarm.tone_formal}
+                  value={personaForm.tone_formal}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       tone_formal: Number(e.target.value),
                     })
                   }
@@ -476,17 +469,17 @@ export default function BrandDetailPage({
                   htmlFor="witty"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Witty: {personaFarm.tone_witty}
+                  Witty: {personaForm.tone_witty}
                 </label>
                 <input
                   type="range"
                   id="witty"
                   min="1"
                   max="10"
-                  value={personaFarm.tone_witty}
+                  value={personaForm.tone_witty}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       tone_witty: Number(e.target.value),
                     })
                   }
@@ -503,17 +496,17 @@ export default function BrandDetailPage({
                   htmlFor="aspiration"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Aspiration: {personaFarm.tone_aspirational}
+                  Aspiration: {personaForm.tone_aspirational}
                 </label>
                 <input
                   type="range"
                   id="aspiration"
                   min="1"
                   max="10"
-                  value={personaFarm.tone_aspirational}
+                  value={personaForm.tone_aspirational}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       tone_aspirational: Number(e.target.value),
                     })
                   }
@@ -535,10 +528,10 @@ export default function BrandDetailPage({
                 <input
                   type="text"
                   id="cta"
-                  value={personaFarm.default_cta}
+                  value={personaForm.default_cta}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       default_cta: e.target.value,
                     })
                   }
@@ -556,10 +549,10 @@ export default function BrandDetailPage({
                 </label>
                 <textarea
                   id="safetyNotes"
-                  value={personaFarm.safety_notes}
+                  value={personaForm.safety_notes}
                   onChange={(e) =>
-                    setPersonaFarm({
-                      ...personaFarm,
+                    setPersonaForm({
+                      ...personaForm,
                       safety_notes: e.target.value,
                     })
                   }
@@ -648,12 +641,12 @@ export default function BrandDetailPage({
                         Delete
                       </button>
                     </div>
-                    {campaign.prompt && (
+                    {/* {campaign.prompt && (
                       <p className="text-sm text-gray-600 mb-2">
                         <span className="font-medium">Prompt:</span>{" "}
                         {campaign.prompt}
                       </p>
-                    )}
+                    )} */}
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Objective:</span>{" "}
                       {campaign.objective}

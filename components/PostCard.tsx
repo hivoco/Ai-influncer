@@ -200,7 +200,8 @@ export default function PostCard({
 
   return (
     <>
-      <div className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative">
+      <div className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
+      ">
         {/* Scheduled Badge */}
         {isScheduled && scheduledInfo && (
           <div className="absolute top-2 left-2 right-12 z-10">
@@ -335,7 +336,7 @@ export default function PostCard({
                 {displayMarkDown && <CustomMarkdown text={editedText} />}
               </div>
             </div>
-            <ImageUploader />
+            {/* <ImageUploader /> */}
 
             {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">

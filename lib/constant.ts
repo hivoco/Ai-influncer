@@ -8,3 +8,4 @@ export const socialMediaPlatforms = [
     { value: "reddit", label: "Reddit", icon: "🤖" },
     { value: "wikipedia", label: "Wikipedia", icon: "📚" },
 ];
+
