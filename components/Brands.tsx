@@ -69,12 +69,21 @@ export default function Brands({ brands, latestCampaigns }: BrandsProps) {
           <h1 className="text-2xl font-bold text-gray-900">
             Brand Campaign Manager
           </h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Logout
-          </button>
+
+          <div className="flex items-center gap-4">
+            <Link
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+              href={"/create-prompt"}
+            >
+              Add Prompt
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

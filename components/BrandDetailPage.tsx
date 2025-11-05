@@ -1,11 +1,12 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
+import { User, ImageIcon, Loader2, X } from "lucide-react";
 import { PersonaForm, CampaignForm, FormType, Props } from "@/lib/types";
-import { addNewCampaign, createPersonas } from "@/services/apiCalls";
+import { addNewCampaign, createPersonas, API_BASE } from "@/services/apiCalls";
 import Modal from "@/components/Modal";
 import CreatePersonaForm from "./CreatePersonaForm";
 import CreateCampaignForm from "./CreateCampaignForm";
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { useModal } from "@/hooks/useModal";
 
 export default function BrandDetailPage({ campaignData, personasData }: Props) {
@@ -15,6 +16,9 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
 
   const [activeForm, setActiveForm] = useState<FormType>("campaign");
   const { modalState, showModal, closeModal } = useModal();
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   const [campaignForm, setCampaignForm] = useState<CampaignForm>({
     brand_id: brandID ? brandID : "",
@@ -33,10 +37,27 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
     tone_aspirational: 5,
     default_cta: "",
     default_hashtags: [],
-    persona_photo_url:
-      "https://ai-infl-platform.s3.amazonaws.com/persona/904127b5-af1e-11f0-b03d-0a88edf1954d/photo.png",
+    persona_photo_url: "",
     safety_notes: "",
   });
+
+  const handleImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImageFile(file);
+      const preview = URL.createObjectURL(file);
+      setImagePreview(preview);
+    }
+    e.target.value = "";
+  };
+
+  const removeSelectedImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setSelectedImageFile(null);
+    setImagePreview("");
+  };
 
   const handleCampaignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,15 +67,12 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
       if (res) {
         showModal(
           "Campaign Created Successfully!",
-          `Your campaign "${
-            campaignForm.name
-          }" has been registered successfully. The campaign ID is ${
+          `Your campaign "${campaignForm.name}" has been registered successfully. The campaign ID is ${
             res.campaign_id || "generated"
           } and it will start from ${campaignForm.start_date}.`,
           "success"
         );
 
-        // Reset form
         setCampaignForm({
           brand_id: brandID ? brandID : "",
           name: "",
@@ -82,27 +100,42 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
     e.preventDefault();
     if (!brandID) return;
 
-    showModal(
-      "Persona Created Successfully!",
-      `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`,
-      "success"
-    );
+    try {
+      const data = await createPersonas(personaForm);
 
-    const data = await createPersonas(personaForm);
+      // Upload image if one was selected
+      if (selectedImageFile) {
+        await handleImageUpload(selectedImageFile, data.persona_id);
+      }
 
-    // Reset form
-    setPersonaForm({
-      brand_id: brandID,
-      persona_name: "",
-      bio: "",
-      tone_formal: 0,
-      tone_witty: 0,
-      tone_aspirational: 5,
-      default_cta: "",
-      default_hashtags: [],
-      persona_photo_url: "",
-      safety_notes: "",
-    });
+      showModal(
+        "Persona Created Successfully!",
+        `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`,
+        "success"
+      );
+
+      // Reset form and image
+      setPersonaForm({
+        brand_id: brandID,
+        persona_name: "",
+        bio: "",
+        tone_formal: 0,
+        tone_witty: 0,
+        tone_aspirational: 5,
+        default_cta: "",
+        default_hashtags: [],
+        persona_photo_url: "",
+        safety_notes: "",
+      });
+      removeSelectedImage();
+    } catch (error) {
+      console.error("Error creating persona:", error);
+      showModal(
+        "Persona Creation Failed",
+        "There was an issue creating your persona. Please try again.",
+        "error"
+      );
+    }
   };
 
   const deleteCampaign = (id: string) => {
@@ -121,6 +154,48 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
       `The persona "${personaToDelete?.persona_name}" has been successfully removed.`,
       "info"
     );
+  };
+
+  const handleImageUpload = async (file: File, personaId: string) => {
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/personas/${personaId}/upload-photo`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageUrl = data.photo_url || data.url || data.persona_photo_url;
+
+        if (imageUrl) {
+          setPersonaForm((prev) => ({
+            ...prev,
+            persona_photo_url: imageUrl,
+          }));
+        } else {
+          throw new Error("No image URL in response");
+        }
+      } else {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Image upload error:", error);
+      showModal(
+        "Upload Failed",
+        "Failed to upload image. Please try again.",
+        "error"
+      );
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   return (
@@ -172,6 +247,90 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          {activeForm === "persona" && (
+            <div className="mb-6 border-b pb-6">
+              <div className="flex flex-col items-center">
+                <div className="relative group">
+                  <label
+                    htmlFor="persona-photo-upload"
+                    className="relative block w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 border-4 border-white shadow-lg cursor-pointer"
+                  >
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Persona preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <User className="w-12 h-12" strokeWidth={1.5} />
+                      </div>
+                    )}
+
+                    {uploadingImage && (
+                      <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                        <Loader2 className="w-10 h-10 text-white animate-spin" />
+                      </div>
+                    )}
+
+                    {!uploadingImage && (
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
+                          <ImageIcon className="w-10 h-10 mx-auto mb-1" />
+                          <p className="text-xs font-medium">
+                            {imagePreview ? "Change" : "Upload"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </label>
+
+                  <label
+                    htmlFor="persona-photo-upload"
+                    className={`absolute bottom-1 right-1 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 border-4 border-white ${
+                      uploadingImage
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-700 transform hover:scale-110 cursor-pointer"
+                    }`}
+                  >
+                    <ImageIcon className="w-5 h-5 text-white" />
+                  </label>
+
+                  <input
+                    type="file"
+                    id="persona-photo-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                    disabled={uploadingImage}
+                  />
+                </div>
+
+                <div className="mt-4 text-center">
+                  <p className="text-sm font-medium text-gray-700">
+                    {personaForm.persona_name || "Persona Photo"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedImageFile
+                      ? selectedImageFile.name
+                      : "Click to upload persona photo"}
+                  </p>
+
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={removeSelectedImage}
+                      className="mt-2 text-xs text-red-600 hover:text-red-700 font-medium transition inline-flex items-center gap-1"
+                    >
+                      <X className="w-3 h-3" />
+                      Remove photo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeForm === "campaign" ? (
             <CreateCampaignForm
               handleCampaignSubmit={handleCampaignSubmit}
@@ -195,7 +354,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 No personas created yet
               </p>
             ) : (
-              <div className="space-y-4 h-54 p-3 overflow-y-auto scroll-smooth">
+              <div className="space-y-4 max-h-96 p-3 overflow-y-auto">
                 {personasData.map((persona) => (
                   <div
                     key={persona.persona_id}
@@ -236,7 +395,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 No campaigns registered yet
               </p>
             ) : (
-              <div className="space-y-4 h-54 p-3 overflow-y-auto scroll-smooth">
+              <div className="space-y-4 max-h-96 p-3 overflow-y-auto">
                 {campaignData.map((campaign) => (
                   <div
                     key={campaign.campaign_id}
