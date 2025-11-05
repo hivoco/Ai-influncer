@@ -9,5 +9,12 @@ export const socialMediaPlatforms = [
     { value: "wikipedia", label: "Wikipedia", icon: "📚" },
 ];
 
+export const CATEGORIES = [
+  { value: "video", label: "Video" },
+  { value: "image", label: "Image" },
+  { value: "text", label: "Text" },
+];
+
+
 export const EMAIL = "admin@hivoco.com"
 export const PASSWORD = "admin@123"

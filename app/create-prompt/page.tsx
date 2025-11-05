@@ -12,15 +12,8 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { CATEGORIES } from "@/lib/constant";
 
-const CATEGORIES = [
-  { value: "video", label: "Video" },
-  { value: "image", label: "Image" },
-  { value: "text", label: "Text" },
-  { value: "social", label: "Social Media" },
-  { value: "marketing", label: "Marketing" },
-  { value: "other", label: "Other" },
-];
 
 export default function CreatePromptPage() {
   const router = useRouter();
@@ -101,7 +94,6 @@ export default function CreatePromptPage() {
               content types
             </p>
           </div>
-
 
           <form
             onSubmit={handleSubmit}
@@ -235,7 +227,7 @@ export default function CreatePromptPage() {
               </button>
             </div>
           </form>
-                    {showSuccess && (
+          {showSuccess && (
             <div
               className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3"
               role="alert"
@@ -264,7 +256,6 @@ export default function CreatePromptPage() {
               <p className="text-red-800">{error}</p>
             </div>
           )}
-
         </div>
       </main>
     </div>
