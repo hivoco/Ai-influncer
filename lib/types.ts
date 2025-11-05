@@ -154,3 +154,9 @@ export type Props = {
   campaignData: BrandData[];
   personasData: BrandPersona[];
 };
+
+export interface PromptForm {
+  name: string;
+  prompt_text: string;
+  category: string;
+}

@@ -1,5 +1,5 @@
-export const API_BASE = "https://backend.thefirstimpression.ai";
-
+export const API_BASE =
+ "https://backend.thefirstimpression.ai";
 // "http://192.168.1.11:8000";
 // "http://localhost:8000";
 export const getCampaignPrompts = async (id: string) => {
@@ -216,5 +216,39 @@ export async function createPersonas({
     cache: "no-store",
   });
   if (!res.ok) throw new Error("Failed to generate image");
+  return res.json();
+}
+
+export async function createPrompt({
+  name,
+  prompt_text,
+  category,
+}: {
+  name: string;
+  prompt_text: string;
+  category: string;
+}) {
+  const res = await fetch(`${API_BASE}/ai-prompts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      prompt_text,
+      category,
+    }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => null);
+    throw new Error(
+      `Failed to create prompt: ${res.status} ${res.statusText}${
+        text ? " — " + text : ""
+      }`
+    );
+  }
+
   return res.json();
 }

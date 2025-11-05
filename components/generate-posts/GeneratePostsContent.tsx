@@ -42,6 +42,9 @@ export default function GeneratePostsContent() {
     start_date: new Date().toISOString().split("T")[0],
     end_date: new Date().toISOString().split("T")[0],
   });
+  const [formErrors, setFormErrors] = useState<{
+    campaignDates?: string;
+  }>({});
 
   const [personaForm, setPersonaForm] = useState<PersonaForm>({
     brand_id: brandId ? brandId : "",
@@ -71,22 +74,58 @@ export default function GeneratePostsContent() {
   const { modalState, showModal, closeModal } = useModal();
 
   const [postsData, setPostsData] = useState<Post[]>([]);
+  const prevPostsLengthRef = useRef(0);
+
+  // Helper function to handle modal display and close forms
+  const handleModalResult = (
+    closeForm: () => void,
+    success: boolean,
+    title: string,
+    message: string
+  ) => {
+    closeForm();
+    showModal(title, message, success ? "success" : "error");
+  };
+
+  // Helper function to validate campaign dates
+  const validateCampaignDates = (startDate: string, endDate: string): boolean => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end < start) {
+      setFormErrors({ campaignDates: "End date must be after start date" });
+      return false;
+    }
+
+    setFormErrors({});
+    return true;
+  };
 
   const handleCampaignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate dates before submission
+    if (!validateCampaignDates(campaignForm.start_date, campaignForm.end_date)) {
+      handleModalResult(
+        () => {},
+        false,
+        "Validation Error",
+        formErrors.campaignDates || "Invalid date range"
+      );
+      return;
+    }
+
     try {
       const res = await addNewCampaign(campaignForm);
 
       if (res) {
-        setShowAddCampaign(false); // Close the common modal
-        showModal(
+        handleModalResult(
+          () => setShowAddCampaign(false),
+          true,
           "Campaign Created Successfully!",
-          `Your campaign "${
-            campaignForm.name
-          }" has been registered successfully. The campaign ID is ${
+          `Your campaign "${campaignForm.name}" has been registered successfully. The campaign ID is ${
             res.campaign_id || "generated"
-          } and it will start from ${campaignForm.start_date}.`,
-          "success"
+          } and it will start from ${campaignForm.start_date}.`
         );
 
         // Reset form
@@ -98,19 +137,19 @@ export default function GeneratePostsContent() {
           end_date: new Date().toISOString().split("T")[0],
         });
       } else {
-        setShowAddCampaign(false); // Close the common modal
-        showModal(
+        handleModalResult(
+          () => setShowAddCampaign(false),
+          false,
           "Campaign Creation Failed",
-          "There was an issue creating your campaign. Please try again later.",
-          "error"
+          "There was an issue creating your campaign. Please try again later."
         );
       }
     } catch (error) {
-      setShowAddCampaign(false); // Close the common modal
-      showModal(
+      handleModalResult(
+        () => setShowAddCampaign(false),
+        false,
         "Error",
-        "An unexpected error occurred while creating the campaign.",
-        "error"
+        "An unexpected error occurred while creating the campaign."
       );
       if (error instanceof Error) {
         console.error(error.message);
@@ -122,16 +161,24 @@ export default function GeneratePostsContent() {
 
   const handlePersonaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!brandId) return;
+    if (!brandId) {
+      handleModalResult(
+        () => {},
+        false,
+        "Error",
+        "Brand ID is required to create a persona."
+      );
+      return;
+    }
 
     try {
       const data = await createPersonas(personaForm);
 
-      setShowAddPersonas(false); // Close the common modal
-      showModal(
+      handleModalResult(
+        () => setShowAddPersonas(false),
+        true,
         "Persona Created Successfully!",
-        `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`,
-        "success"
+        `The persona "${personaForm.persona_name}" has been created with the following characteristics: Tone (${personaForm.tone_formal}/10), Witty (${personaForm.tone_witty}/10), Aspiration (${personaForm.tone_aspirational}/10).`
       );
 
       // Reset form
@@ -148,23 +195,29 @@ export default function GeneratePostsContent() {
         safety_notes: "",
       });
     } catch (error) {
-      setShowAddPersonas(false); // Close the common modal
-      showModal(
+      handleModalResult(
+        () => setShowAddPersonas(false),
+        false,
         "Error",
-        "Failed to create persona. Please try again.",
-        "error"
+        "Failed to create persona. Please try again."
       );
-      console.error("Error creating persona:", error);
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error("An unknown error occurred");
+      }
     }
   };
 
+  // Only scroll when posts are added, not removed or modified
   useEffect(() => {
-    if (postsData.length && postsDivRef.current) {
+    if (postsData.length > prevPostsLengthRef.current && postsDivRef.current) {
       postsDivRef.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
+    prevPostsLengthRef.current = postsData.length;
   }, [postsData.length]);
 
   useEffect(() => {
@@ -223,8 +276,12 @@ export default function GeneratePostsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" />
+          <p className="text-xl text-gray-700 font-semibold">Loading Campaign Data...</p>
+          <p className="text-sm text-gray-500 mt-2">Please wait while we fetch your campaign details</p>
+        </div>
       </div>
     );
   }
@@ -232,16 +289,17 @@ export default function GeneratePostsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <button
             onClick={() => router.push(`/brand/${brandId}`)}
             className="text-indigo-600 hover:text-indigo-800 font-semibold"
+            aria-label="Navigate back to brand page"
           >
             ← Back to Brand
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Generate Post</h1>
-          <div className="w-32"></div> {/* Spacer for alignment */}
+          <div className="w-32" aria-hidden="true"></div> {/* Spacer for alignment */}
         </div>
       </header>
 
@@ -264,7 +322,7 @@ export default function GeneratePostsContent() {
                 Post Generation Form
               </h2>
 
-              <form onSubmit={handleGeneratePost} className="space-y-6">
+              <form onSubmit={handleGeneratePost} className="space-y-6" aria-label="Post generation form">
                 {/* Campaign Name - Prefilled */}
                 <div>
                   <label
@@ -281,6 +339,8 @@ export default function GeneratePostsContent() {
                       value={campaign.name}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                       readOnly
+                      aria-readonly="true"
+                      aria-label="Campaign name (read-only)"
                     />
                   )}
                 </div>
@@ -300,6 +360,8 @@ export default function GeneratePostsContent() {
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
                       readOnly
+                      aria-readonly="true"
+                      aria-label="Campaign objective (read-only)"
                     />
                   )}
                 </div>
@@ -319,6 +381,9 @@ export default function GeneratePostsContent() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
                     disabled={isGeneratingPosts}
+                    aria-required="true"
+                    aria-label="Select social media platform"
+                    aria-disabled={isGeneratingPosts}
                   >
                     <option value="">Select a platform</option>
                     {socialMediaPlatforms.map((platform) => (
@@ -344,10 +409,16 @@ export default function GeneratePostsContent() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
                     disabled={isGeneratingPosts}
+                    aria-required="true"
+                    aria-label="Select persona for post generation"
+                    aria-disabled={isGeneratingPosts}
                   >
                     <option value="">Select a persona</option>
                     {personaData.map((persona: Persona) => (
-                      <option key={persona.persona_id} value={persona.persona_id}>
+                      <option
+                        key={persona.persona_id}
+                        value={persona.persona_id}
+                      >
                         {persona.persona_name}
                       </option>
                     ))}
@@ -364,10 +435,12 @@ export default function GeneratePostsContent() {
                       ? "opacity-60 cursor-not-allowed"
                       : "active:opacity-65"
                   }`}
+                  aria-label={isGeneratingPosts ? "Generating posts, please wait" : "Generate post"}
+                  aria-busy={isGeneratingPosts}
                 >
                   {isGeneratingPosts ? (
                     <div className="flex items-center justify-center gap-3">
-                      <Loader2 className="animate-spin text-white h-5 w-5" />
+                      <Loader2 className="animate-spin text-white h-5 w-5" aria-hidden="true" />
                       <span>Generating Posts...</span>
                     </div>
                   ) : (
@@ -437,7 +510,7 @@ export default function GeneratePostsContent() {
               </div>
             </div> */}
             {/* Bottom Section - Personas List */}
-            <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col">
+            <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col" role="region" aria-label="Available personas">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">
                   Available Personas
@@ -445,27 +518,30 @@ export default function GeneratePostsContent() {
                 <button
                   onClick={() => setShowAddPersonas(true)}
                   className="size-5 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition"
-                  title="Add Campaign"
+                  title="Add Persona"
+                  aria-label="Add new persona"
                 >
-                  <Plus size={12} />
+                  <Plus size={12} aria-hidden="true" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {personaData.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
+                  <p className="text-gray-500 text-center py-8" role="status">
                     No personas available
                   </p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3" role="list" aria-label="List of available personas">
                     {personaData.map((persona: Persona) => (
                       <div
                         key={persona.persona_id}
                         className={`border rounded-lg p-4 hover:shadow-md transition ${
-                          persona.brand_id === selectedPersona
+                          persona.persona_id === selectedPersona
                             ? "border-purple-500 bg-purple-50"
                             : "border-gray-200"
                         }`}
+                        role="listitem"
+                        aria-current={persona.persona_id === selectedPersona ? "true" : "false"}
                       >
                         <h4 className="font-semibold text-gray-800 mb-2">
                           {persona.persona_name}
@@ -515,14 +591,18 @@ export default function GeneratePostsContent() {
       />
 
       <div
+        ref={postsDivRef}
         className={` w-full p-10 ${
           isShow ? "flex" : "hidden"
         } gap-3 overflow-x-auto`}
+        role="region"
+        aria-label="Generated posts"
+        aria-live="polite"
       >
         {postsData.length !== 0 &&
           postsData.map((p: Post) => {
             return (
-              <div ref={postsDivRef} className="" key={p.post_id}>
+              <div className="" key={p.post_id}>
                 <PostCard postID={p.post_id} markdownText={p.body} />
               </div>
             );
