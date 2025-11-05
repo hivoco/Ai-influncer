@@ -1,5 +1,4 @@
-export const API_BASE =
- "https://backend.thefirstimpression.ai";
+export const API_BASE = "https://backend.thefirstimpression.ai";
 // "http://192.168.1.11:8000";
 // "http://localhost:8000";
 export const getCampaignPrompts = async (id: string) => {
@@ -251,4 +250,28 @@ export async function createPrompt({
   }
 
   return res.json();
+}
+
+export async function deletePersona(persona_id: string) {
+  const response = await fetch(`${API_BASE}/personas/${persona_id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete persona");
+  }
+
+  return response.json();
+}
+
+export async function deleteCampaign(campaign_id: string) {
+  const response = await fetch(`${API_BASE}/campaigns/${campaign_id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete persona");
+  }
+
+  return response.json();
 }

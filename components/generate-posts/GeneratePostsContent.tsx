@@ -88,7 +88,10 @@ export default function GeneratePostsContent() {
   };
 
   // Helper function to validate campaign dates
-  const validateCampaignDates = (startDate: string, endDate: string): boolean => {
+  const validateCampaignDates = (
+    startDate: string,
+    endDate: string
+  ): boolean => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -105,7 +108,9 @@ export default function GeneratePostsContent() {
     e.preventDefault();
 
     // Validate dates before submission
-    if (!validateCampaignDates(campaignForm.start_date, campaignForm.end_date)) {
+    if (
+      !validateCampaignDates(campaignForm.start_date, campaignForm.end_date)
+    ) {
       handleModalResult(
         () => {},
         false,
@@ -123,7 +128,9 @@ export default function GeneratePostsContent() {
           () => setShowAddCampaign(false),
           true,
           "Campaign Created Successfully!",
-          `Your campaign "${campaignForm.name}" has been registered successfully. The campaign ID is ${
+          `Your campaign "${
+            campaignForm.name
+          }" has been registered successfully. The campaign ID is ${
             res.campaign_id || "generated"
           } and it will start from ${campaignForm.start_date}.`
         );
@@ -279,8 +286,12 @@ export default function GeneratePostsContent() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" />
-          <p className="text-xl text-gray-700 font-semibold">Loading Campaign Data...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait while we fetch your campaign details</p>
+          <p className="text-xl text-gray-700 font-semibold">
+            Loading Campaign Data...
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Please wait while we fetch your campaign details
+          </p>
         </div>
       </div>
     );
@@ -299,7 +310,8 @@ export default function GeneratePostsContent() {
             ← Back to Brand
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Generate Post</h1>
-          <div className="w-32" aria-hidden="true"></div> {/* Spacer for alignment */}
+          <div className="w-32" aria-hidden="true"></div>{" "}
+          {/* Spacer for alignment */}
         </div>
       </header>
 
@@ -322,7 +334,11 @@ export default function GeneratePostsContent() {
                 Post Generation Form
               </h2>
 
-              <form onSubmit={handleGeneratePost} className="space-y-6" aria-label="Post generation form">
+              <form
+                onSubmit={handleGeneratePost}
+                className="space-y-6"
+                aria-label="Post generation form"
+              >
                 {/* Campaign Name - Prefilled */}
                 <div>
                   <label
@@ -435,12 +451,19 @@ export default function GeneratePostsContent() {
                       ? "opacity-60 cursor-not-allowed"
                       : "active:opacity-65"
                   }`}
-                  aria-label={isGeneratingPosts ? "Generating posts, please wait" : "Generate post"}
+                  aria-label={
+                    isGeneratingPosts
+                      ? "Generating posts, please wait"
+                      : "Generate post"
+                  }
                   aria-busy={isGeneratingPosts}
                 >
                   {isGeneratingPosts ? (
                     <div className="flex items-center justify-center gap-3">
-                      <Loader2 className="animate-spin text-white h-5 w-5" aria-hidden="true" />
+                      <Loader2
+                        className="animate-spin text-white h-5 w-5"
+                        aria-hidden="true"
+                      />
                       <span>Generating Posts...</span>
                     </div>
                   ) : (
@@ -510,7 +533,11 @@ export default function GeneratePostsContent() {
               </div>
             </div> */}
             {/* Bottom Section - Personas List */}
-            <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col" role="region" aria-label="Available personas">
+            <div
+              className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col"
+              role="region"
+              aria-label="Available personas"
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">
                   Available Personas
@@ -531,9 +558,14 @@ export default function GeneratePostsContent() {
                     No personas available
                   </p>
                 ) : (
-                  <div className="space-y-3" role="list" aria-label="List of available personas">
+                  <div
+                    className="space-y-3"
+                    role="list"
+                    aria-label="List of available personas"
+                  >
                     {personaData.map((persona: Persona) => (
                       <div
+                        onClick={() => setSelectedPersona(persona.persona_id)}
                         key={persona.persona_id}
                         className={`border rounded-lg p-4 hover:shadow-md transition ${
                           persona.persona_id === selectedPersona
@@ -541,7 +573,11 @@ export default function GeneratePostsContent() {
                             : "border-gray-200"
                         }`}
                         role="listitem"
-                        aria-current={persona.persona_id === selectedPersona ? "true" : "false"}
+                        aria-current={
+                          persona.persona_id === selectedPersona
+                            ? "true"
+                            : "false"
+                        }
                       >
                         <h4 className="font-semibold text-gray-800 mb-2">
                           {persona.persona_name}

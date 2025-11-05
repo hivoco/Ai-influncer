@@ -2,17 +2,24 @@
 import { usePathname, useRouter } from "next/navigation";
 import { User, ImageIcon, Loader2, X } from "lucide-react";
 import { PersonaForm, CampaignForm, FormType, Props } from "@/lib/types";
-import { addNewCampaign, createPersonas, API_BASE } from "@/services/apiCalls";
+import {
+  addNewCampaign,
+  createPersonas,
+  API_BASE,
+  deletePersona,
+  deleteCampaign,
+} from "@/services/apiCalls";
 import Modal from "@/components/Modal";
 import CreatePersonaForm from "./CreatePersonaForm";
 import CreateCampaignForm from "./CreateCampaignForm";
 import { useState, ChangeEvent } from "react";
 import { useModal } from "@/hooks/useModal";
+import Link from "next/link";
 
 export default function BrandDetailPage({ campaignData, personasData }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const brandID = pathname.split("/").filter(Boolean).pop();
+  const brandId = pathname.split("/").filter(Boolean).pop();
 
   const [activeForm, setActiveForm] = useState<FormType>("campaign");
   const { modalState, showModal, closeModal } = useModal();
@@ -21,7 +28,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
   const [imagePreview, setImagePreview] = useState<string>("");
 
   const [campaignForm, setCampaignForm] = useState<CampaignForm>({
-    brand_id: brandID ? brandID : "",
+    brand_id: brandId ? brandId : "",
     name: "",
     objective: "",
     start_date: new Date().toISOString().split("T")[0],
@@ -29,7 +36,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
   });
 
   const [personaForm, setPersonaForm] = useState<PersonaForm>({
-    brand_id: brandID ? brandID : "",
+    brand_id: brandId ? brandId : "",
     persona_name: "",
     bio: "",
     tone_formal: 0,
@@ -67,14 +74,16 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
       if (res) {
         showModal(
           "Campaign Created Successfully!",
-          `Your campaign "${campaignForm.name}" has been registered successfully. The campaign ID is ${
+          `Your campaign "${
+            campaignForm.name
+          }" has been registered successfully. The campaign ID is ${
             res.campaign_id || "generated"
           } and it will start from ${campaignForm.start_date}.`,
           "success"
         );
 
         setCampaignForm({
-          brand_id: brandID ? brandID : "",
+          brand_id: brandId ? brandId : "",
           name: "",
           objective: "",
           start_date: new Date().toISOString().split("T")[0],
@@ -98,7 +107,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
 
   const handlePersonaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!brandID) return;
+    if (!brandId) return;
 
     try {
       const data = await createPersonas(personaForm);
@@ -116,7 +125,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
 
       // Reset form and image
       setPersonaForm({
-        brand_id: brandID,
+        brand_id: brandId,
         persona_name: "",
         bio: "",
         tone_formal: 0,
@@ -138,22 +147,26 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
     }
   };
 
-  const deleteCampaign = (id: string) => {
-    const campaignToDelete = campaignData.find((c) => c.campaign_id === id);
-    showModal(
-      "Campaign Deleted",
-      `The campaign "${campaignToDelete?.name}" has been successfully removed.`,
-      "info"
-    );
+  const handleDeleteCampaign = async (campaign_id: string) => {
+    try {
+      await deleteCampaign(campaign_id);
+      showModal("Campaign Deleted", "success");
+      router.refresh();
+    } catch (error) {
+      console.error("Delete persona error:", error);
+      showModal("Delete Failed", "error");
+    }
   };
 
-  const deletePersona = (id: string) => {
-    const personaToDelete = personasData.find((p) => p.persona_id === id);
-    showModal(
-      "Persona Deleted",
-      `The persona "${personaToDelete?.persona_name}" has been successfully removed.`,
-      "info"
-    );
+  const handleDeletePersona = async (persona_id: string) => {
+    try {
+      await deletePersona(persona_id);
+      showModal("Persona Deleted", "success");
+      router.refresh();
+    } catch (error) {
+      console.error("Delete persona error:", error);
+      showModal("Delete Failed", "error");
+    }
   };
 
   const handleImageUpload = async (file: File, personaId: string) => {
@@ -248,13 +261,10 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
 
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           {activeForm === "persona" && (
-            <div className="mb-6 border-b pb-6">
+            <div className="mb-6  border-b border-b-gray-300 pb-6">
               <div className="flex flex-col items-center">
                 <div className="relative group">
-                  <label
-                    htmlFor="persona-photo-upload"
-                    className="relative block w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 border-4 border-white shadow-lg cursor-pointer"
-                  >
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 border-4 border-white shadow-lg">
                     {imagePreview ? (
                       <img
                         src={imagePreview}
@@ -266,25 +276,31 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                         <User className="w-12 h-12" strokeWidth={1.5} />
                       </div>
                     )}
+                  </div>
 
-                    {uploadingImage && (
-                      <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                        <Loader2 className="w-10 h-10 text-white animate-spin" />
+                  {/* Loading Overlay - only shows when uploading */}
+                  {uploadingImage && (
+                    <div className="absolute inset-0 w-32 h-32 rounded-full bg-black bg-opacity-60 flex items-center justify-center">
+                      <Loader2 className="w-10 h-10 text-white animate-spin" />
+                    </div>
+                  )}
+
+                  {/* Hover Overlay - only shows when not uploading */}
+                  {!uploadingImage && (
+                    <label
+                      htmlFor="persona-photo-upload"
+                      className="absolute inset-0 w-32 h-32 rounded-full bg-transparent hover:bg-black hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center cursor-pointer"
+                    >
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center pointer-events-none">
+                        <ImageIcon className="w-10 h-10 mx-auto mb-1" />
+                        <p className="text-xs font-medium">
+                          {imagePreview ? "Change" : "Upload"}
+                        </p>
                       </div>
-                    )}
+                    </label>
+                  )}
 
-                    {!uploadingImage && (
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
-                          <ImageIcon className="w-10 h-10 mx-auto mb-1" />
-                          <p className="text-xs font-medium">
-                            {imagePreview ? "Change" : "Upload"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </label>
-
+                  {/* Camera Icon Badge */}
                   <label
                     htmlFor="persona-photo-upload"
                     className={`absolute bottom-1 right-1 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 border-4 border-white ${
@@ -309,11 +325,6 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 <div className="mt-4 text-center">
                   <p className="text-sm font-medium text-gray-700">
                     {personaForm.persona_name || "Persona Photo"}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {selectedImageFile
-                      ? selectedImageFile.name
-                      : "Click to upload persona photo"}
                   </p>
 
                   {imagePreview && (
@@ -365,7 +376,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                         {persona.persona_name}
                       </h4>
                       <button
-                        onClick={() => deletePersona(persona.persona_id)}
+                        onClick={() => handleDeletePersona(persona.persona_id)}
                         className="text-red-600 hover:text-red-800 text-sm"
                       >
                         Delete
@@ -395,18 +406,22 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 No campaigns registered yet
               </p>
             ) : (
-              <div className="space-y-4 max-h-96 p-3 overflow-y-auto">
+              <div className="space-y-4 max-h-96 p-3 overflow-y-auto flex flex-col">
                 {campaignData.map((campaign) => (
-                  <div
+                  <Link
+                    href={`/generate-posts?brand_id=${brandId}&campaign_id=${campaign.campaign_id}`}
                     key={campaign.campaign_id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                    className="border w-full border-gray-200 rounded-lg p-4 hover:shadow-md transition"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-gray-800">
                         {campaign.name}
                       </h4>
                       <button
-                        onClick={() => deleteCampaign(campaign.campaign_id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteCampaign(campaign.campaign_id);
+                        }}
                         className="text-red-600 hover:text-red-800 text-sm"
                       >
                         Delete
@@ -416,7 +431,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                       <span className="font-medium">Objective:</span>{" "}
                       {campaign.objective}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
