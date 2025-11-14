@@ -11,13 +11,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import CustomMarkdown from "./CustomMarkdown";
-import ImageUploader from "./ImageUploader";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 
 interface PostCardProps {
   postID: string;
   markdownText: string;
+  platform: string;
   onEdit?: (newText: string) => void;
   onSchedule?: (scheduleData: ScheduleData) => void;
 }
@@ -31,11 +31,14 @@ interface ScheduleData {
 export default function PostCard({
   postID,
   markdownText,
-  onEdit,
-  onSchedule,
+  // onEdit,
+  // onSchedule,
+  platform,
 }: PostCardProps) {
   const router = useRouter();
   const { data, setData } = useStore();
+
+  console.log(platform)
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -85,9 +88,9 @@ export default function PostCard({
 
   const handleSave = () => {
     setCurrentText(editedText);
-    if (onEdit) {
-      onEdit(editedText);
-    }
+    // if (onEdit) {
+    //   onEdit(editedText);
+    // }
     setIsEditModalOpen(false);
   };
 
@@ -123,10 +126,9 @@ export default function PostCard({
       };
 
       try {
+        console.log(platform);
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
-        const res = await schedulePost(postID, istTime);
-        console.log(res);
-
+        const res = await schedulePost(postID, istTime, platform);
         // Check if the API response indicates success
         if (
           res &&
@@ -200,8 +202,10 @@ export default function PostCard({
 
   return (
     <>
-      <div className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
-      ">
+      <div
+        className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
+      "
+      >
         {/* Scheduled Badge */}
         {isScheduled && scheduledInfo && (
           <div className="absolute top-2 left-2 right-12 z-10">

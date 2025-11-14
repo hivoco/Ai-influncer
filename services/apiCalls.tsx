@@ -1,6 +1,7 @@
-export const API_BASE = "https://backend.thefirstimpression.ai";
-// "http://192.168.1.11:8000";
-// "http://localhost:8000";
+export const API_BASE =
+  // "https://backend.thefirstimpression.ai";
+  // "http://192.168.1.11:8000";
+  "http://localhost:8000";
 export const getCampaignPrompts = async (id: string) => {
   const data = await fetch(API_BASE + `/prompts/?brand_id=${id}`, {
     cache: "no-store",
@@ -64,8 +65,12 @@ export const genPost = async ({
   return res;
 };
 
-export async function schedulePost(post_id: string, scheduled_time: string) {
-  const res = await fetch(API_BASE + "/linkdin/schedule/", {
+export async function schedulePost(
+  post_id: string,
+  scheduled_time: string,
+  platform: string
+) {
+  const res = await fetch(`${API_BASE}/${platform}/schedule`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

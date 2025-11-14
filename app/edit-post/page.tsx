@@ -93,7 +93,7 @@ const Page = () => {
       try {
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
         if (!postID) return;
-        const res = await schedulePost(postID, istTime);
+        const res = await schedulePost(postID, istTime, selectedPlatforms[0]);
         console.log(res);
 
         // Check if the API response indicates success

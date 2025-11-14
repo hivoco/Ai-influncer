@@ -120,7 +120,7 @@ export interface CampaignForm {
 
 export type FormType = "campaign" | "persona";
 
- export type BrandData = {
+export type BrandData = {
   brand_id: string;
   name: string;
   objective: string;
@@ -160,3 +160,10 @@ export interface PromptForm {
   prompt_text: string;
   category: string;
 }
+
+export type Platform = {
+  id: string;
+  value: string;
+  label: string;
+  icon: string;
+};

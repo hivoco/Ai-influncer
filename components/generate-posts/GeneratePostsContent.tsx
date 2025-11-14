@@ -23,6 +23,7 @@ import {
   Persona,
   PersonaData,
   PersonaForm,
+  Platform,
   Post,
 } from "@/lib/types";
 import CreateCampaignForm from "../CreateCampaignForm";
@@ -60,7 +61,15 @@ export default function GeneratePostsContent() {
     safety_notes: "",
   });
 
-  const [selectedPlatform, setSelectedPlatform] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>({
+    id: "",
+    value: "",
+    label: "",
+    icon: "",
+  });
+
+  console.log(selectedPlatform);
+
   const [selectedPersona, setSelectedPersona] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isShow, setIsShow] = useState(false);
@@ -246,9 +255,7 @@ export default function GeneratePostsContent() {
       if (!campaignId) return;
       setCampaign(await getCampaignById(campaignId));
     };
-
     fetchApis();
-
     setIsLoading(false);
   }, [brandId, campaignId, router]);
 
@@ -257,12 +264,11 @@ export default function GeneratePostsContent() {
 
     try {
       setIsGeneratingPosts(true);
-
       if (!campaign || !campaignId) return;
       const postsList = await genPost({
         campaign_id: campaignId,
         persona_id: selectedPersona,
-        platform_id: "92df89c7-a9c3-11f0-b03d-0a88edf1954d",
+        platform_id: selectedPlatform.id,
         title: campaign.name,
         user_prompt: campaign.objective,
       });
@@ -392,8 +398,14 @@ export default function GeneratePostsContent() {
                   </label>
                   <select
                     id="platform"
-                    value={selectedPlatform}
-                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    value={selectedPlatform.value}
+                    onChange={(e) => {
+                      const item = socialMediaPlatforms.find(
+                        (p) =>
+                          p.value.toLowerCase() === e.target.value.toLowerCase()
+                      );
+                      if (item) setSelectedPlatform(item);
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
                     disabled={isGeneratingPosts}
@@ -476,63 +488,6 @@ export default function GeneratePostsContent() {
 
           {/* Right Side - Two Sections */}
           <div className="w-96 flex flex-col gap-8 h-screen">
-            {/* Top Section - Campaigns/Prompts List */}
-            {/* <div className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-y-auto flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-800">
-                  Campaign Prompts
-                </h3>
-                <button
-                  onClick={() => setShowAddCampaign(true)}
-                  className="size-5 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition"
-                  title="Add Campaign"
-                >
-                  <Plus size={12} />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
-                {campaignPrompts &&
-                  campaignPrompts.map((c: CampaignPrompt) => {
-                    return (
-                      <div
-                        className="bg-gray-50 hover:bg-gray-100 px-3 py-3 rounded-md"
-                        key={c.persona_id}
-                      >
-                        <h4 className="text-sm">{c.name}</h4>
-                      </div>
-                    );
-                  })}
-              </div>
-
-              <div className="flex-1  overflow-y-auto">
-                {campaign === null ? (
-                  <p className="text-gray-500 text-center py-8">
-                    No campaigns available
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    <div
-                      key={campaign.campaign_id}
-                      className={`border rounded-lg p-4 hover:shadow-md transition ${
-                        campaign.campaign_id === campaignId
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200"
-                      }`}
-                    >
-                      <h4 className="font-semibold text-gray-800 mb-2">
-                        {campaign.name}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Objective:</span>{" "}
-                        {campaign.objective}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div> */}
-            {/* Bottom Section - Personas List */}
             <div
               className="flex-1 bg-white rounded-xl shadow-lg p-6 overflow-hidden flex flex-col"
               role="region"
@@ -639,7 +594,11 @@ export default function GeneratePostsContent() {
           postsData.map((p: Post) => {
             return (
               <div className="" key={p.post_id}>
-                <PostCard postID={p.post_id} markdownText={p.body} />
+                <PostCard
+                  postID={p.post_id}
+                  markdownText={p.body}
+                  platform={selectedPlatform.value}
+                />
               </div>
             );
           })}

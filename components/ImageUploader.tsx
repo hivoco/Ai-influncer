@@ -239,7 +239,7 @@ export default function ImageUploader({
                   </button>
                   <div className="absolute bottom-0 left-0 right-0 w-full bg-linear-to-t from-black/60 to-transparent p-2">
                     <p className="text-white text-xs font-medium ">
-                      {file.name.slice(0,5)}...
+                      {file.name.slice(0, 5)}...
                     </p>
                   </div>
                 </div>
