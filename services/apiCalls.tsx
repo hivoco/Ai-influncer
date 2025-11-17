@@ -1,7 +1,6 @@
-export const API_BASE =
-  // "https://backend.thefirstimpression.ai";
+export const API_BASE = "https://backend.thefirstimpression.ai";
   // "http://192.168.1.11:8000";
-  "http://localhost:8000";
+  // "http://localhost:8000";
 export const getCampaignPrompts = async (id: string) => {
   const data = await fetch(API_BASE + `/prompts/?brand_id=${id}`, {
     cache: "no-store",
