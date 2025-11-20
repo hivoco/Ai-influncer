@@ -1,47 +1,61 @@
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 const CustomMarkdown = ({ text }: { text: string }) => {
+  const [typed, setTyped] = useState("");
+
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setTyped(text.slice(0, i));
+      i++;
+      if (i > text.length) clearInterval(interval);
+    }, 5);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <ReactMarkdown
       components={{
-        h1: ({ ...props }) => (
-          <h1 className="text-xl font-bold mb-3 text-gray-900" {...props} />
+        h1: ({ ...typed }) => (
+          <h1 className="text-xl font-bold mb-3 text-gray-900" {...typed} />
         ),
-        h2: ({ ...props }) => (
-          <h2 className="text-lg font-bold mb-2 text-gray-900" {...props} />
+        h2: ({ ...typed }) => (
+          <h2 className="text-lg font-bold mb-2 text-gray-900" {...typed} />
         ),
-        h3: ({ ...props }) => (
-          <h3 className="text-base font-bold mb-2 text-gray-900" {...props} />
+        h3: ({ ...typed }) => (
+          <h3 className="text-base font-bold mb-2 text-gray-900" {...typed} />
         ),
-        p: ({ ...props }) => <p className="mb-2 text-sm" {...props} />,
-        strong: ({ ...props }) => (
-          <strong className="font-bold text-gray-900" {...props} />
+        p: ({ ...typed }) => <p className="mb-2 text-sm" {...typed} />,
+        strong: ({ ...typed }) => (
+          <strong className="font-bold text-gray-900" {...typed} />
         ),
-        em: ({ ...props }) => <em className="italic" {...props} />,
-        ul: ({ ...props }) => (
-          <ul className="list-disc list-inside mb-2 text-sm" {...props} />
+        em: ({ ...typed }) => <em className="italic" {...typed} />,
+        ul: ({ ...typed }) => (
+          <ul className="list-disc list-inside mb-2 text-sm" {...typed} />
         ),
-        ol: ({ ...props }) => (
-          <ol className="list-decimal list-inside mb-2 text-sm" {...props} />
+        ol: ({ ...typed }) => (
+          <ol className="list-decimal list-inside mb-2 text-sm" {...typed} />
         ),
-        li: ({ ...props }) => <li className="mb-1" {...props} />,
-        a: ({ ...props }) => (
-          <a className="text-indigo-600 hover:underline" {...props} />
+        li: ({ ...typed }) => <li className="mb-1" {...typed} />,
+        a: ({ ...typed }) => (
+          <a className="text-indigo-600 hover:underline" {...typed} />
         ),
-        blockquote: ({ ...props }) => (
+        blockquote: ({ ...typed }) => (
           <blockquote
             className="border-l-4 border-gray-300 pl-3 italic mb-2 text-sm"
-            {...props}
+            {...typed}
           />
         ),
-        code: ({ ...props }) => (
+        code: ({ ...typed }) => (
           <code
             className="bg-gray-100 px-1 py-0.5 rounded text-xs"
-            {...props}
+            {...typed}
           />
         ),
       }}
     >
-      {text}
+      {typed}
     </ReactMarkdown>
   );
 };

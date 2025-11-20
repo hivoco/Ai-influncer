@@ -13,6 +13,7 @@ import { useState } from "react";
 import CustomMarkdown from "./CustomMarkdown";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
+import TypewriterComponent from "typewriter-effect";
 
 interface PostCardProps {
   postID: string;
@@ -38,7 +39,7 @@ export default function PostCard({
   const router = useRouter();
   const { data, setData } = useStore();
 
-  console.log(platform)
+  console.log(platform);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -88,9 +89,6 @@ export default function PostCard({
 
   const handleSave = () => {
     setCurrentText(editedText);
-    // if (onEdit) {
-    //   onEdit(editedText);
-    // }
     setIsEditModalOpen(false);
   };
 
@@ -139,15 +137,6 @@ export default function PostCard({
         ) {
           // Success - update scheduled state
           setIsScheduled(true);
-          // setScheduledInfo({
-          //   date: scheduleDate,
-          //   time: scheduleTime,
-          //   platforms: selectedPlatforms,
-          // });
-
-          // if (onSchedule) {
-          //   onSchedule(scheduleData);
-          // }
 
           // Reset form and close modal
           setScheduleDate("");
@@ -203,7 +192,7 @@ export default function PostCard({
   return (
     <>
       <div
-        className="min-w-[400px] h-[400px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
+        className="w-full  min-w-[px] min-h-[450px] max-h-[600px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
       "
       >
         {/* Scheduled Badge */}
@@ -230,6 +219,7 @@ export default function PostCard({
                   <X className="w-4 h-4" />
                 </button>
               </div>
+
               {scheduledInfo.platforms.length > 0 && (
                 <div className="mt-1 flex gap-1">
                   {scheduledInfo.platforms.map((platform) => {

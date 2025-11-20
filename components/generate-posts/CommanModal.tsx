@@ -5,14 +5,28 @@ interface CommonModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  className: string;
 }
 
-export default function CommonModal({ isOpen, onClose, title, children }: CommonModalProps) {
+export default function CommonModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+}: CommonModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50
+        `}
+    >
+      <div
+        className={`bg-white rounded-2xl shadow-2xl p-6 max-w-md max-h-[90vh] overflow-y-auto no-scrollbar
+        ${className}
+        `}
+      >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button

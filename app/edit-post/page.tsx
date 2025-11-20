@@ -8,6 +8,7 @@ import Image from "next/image";
 import { socialMediaPlatforms } from "@/lib/constant";
 import { toISTTimestamp } from "@/utilities/posts.utility";
 import { genImage, schedulePost } from "@/services/apiCalls";
+import { toast, ToastContainer } from "react-toastify";
 
 interface ScheduleData {
   date: string;
@@ -56,6 +57,8 @@ const Page = () => {
     setIsScheduleModalOpen(false);
   };
 
+  const notify = (message) => toast(message);
+
   const handleSave = () => {
     // setCurrentText(editedText);
     // if (onEdit) {
@@ -97,37 +100,24 @@ const Page = () => {
         console.log(res);
 
         // Check if the API response indicates success
-        if (
-          res &&
-          (res.success ||
-            res.status === "success" ||
-            res.status === 200 ||
-            res.ok)
-        ) {
-          // Success - update scheduled state
-          setIsScheduled(true);
-          // setScheduledInfo({
-          //   date: scheduleDate,
-          //   time: scheduleTime,
-          //   platforms: selectedPlatforms,
-          // });
+        if (res && res.status === "scheduled") {
+          console.log("scheduled successfully 110");
+          notify("Post scheduled successfully");
 
-          // if (onSchedule) {
-          //   onSchedule(scheduleData);
-          // }
-
+          // setIsScheduled(true);
           // Reset form and close modal
-          setScheduleDate("");
-          setScheduleTime("");
-          setSelectedPlatforms([]);
-          setIsScheduleModalOpen(false);
+          // setScheduleDate("");
+          // setScheduleTime("");
+          // setSelectedPlatforms([]);
+          // setIsScheduleModalOpen(false);
         } else {
-          // API returned but with error
+          notify("Failed to schedule post. Please try again.");
           setScheduleError(
             res?.message || "Failed to schedule post. Please try again."
           );
         }
       } catch (error) {
+        notify("Failed to schedule post. Please try again.");
         console.error("Error scheduling post:", error);
         setScheduleError(
           "An error occurred while scheduling. Please try again."
@@ -390,6 +380,13 @@ const Page = () => {
       {/* Schedule Modal */}
       {isScheduleModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            className="z-[999999]"
+            toastClassName="!bg-black !text-white"
+          />
+
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">

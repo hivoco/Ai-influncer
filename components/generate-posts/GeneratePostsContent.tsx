@@ -29,6 +29,7 @@ import {
 import CreateCampaignForm from "../CreateCampaignForm";
 import { useModal } from "@/hooks/useModal";
 import Modal from "../Modal";
+import Image from "next/image";
 
 export default function GeneratePostsContent() {
   const postsDivRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,7 @@ export default function GeneratePostsContent() {
   const searchParams = useSearchParams();
   const brandId = searchParams.get("brand_id");
   const campaignId = searchParams.get("campaign_id");
+
   const [campaignForm, setCampaignForm] = useState<CampaignForm>({
     brand_id: brandId ? brandId : "",
     name: "",
@@ -83,6 +85,7 @@ export default function GeneratePostsContent() {
   const { modalState, showModal, closeModal } = useModal();
 
   const [postsData, setPostsData] = useState<Post[]>([]);
+  const [displayPostMarkdown, setDisplayPostMarkdown] = useState(true);
   const prevPostsLengthRef = useRef(0);
 
   // Helper function to handle modal display and close forms
@@ -246,8 +249,8 @@ export default function GeneratePostsContent() {
 
     const fetchApis = async () => {
       if (brandId) {
-        const campaignList = await getCampaignPrompts(brandId);
-        setCampaignPrompts(campaignList);
+        // const campaignList = await getCampaignPrompts(brandId);
+        // setCampaignPrompts(campaignList);
         const personaList = await getPersona(brandId);
         setPersonaData(personaList);
       }
@@ -320,7 +323,6 @@ export default function GeneratePostsContent() {
           {/* Spacer for alignment */}
         </div>
       </header>
-
       <Modal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -330,7 +332,6 @@ export default function GeneratePostsContent() {
         autoClose={modalState.type === "success"}
         autoCloseDelay={5000}
       />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           {/* Left Side - Form */}
@@ -457,7 +458,7 @@ export default function GeneratePostsContent() {
                 <button
                   type="submit"
                   disabled={isGeneratingPosts}
-                  className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-lg hover:shadow-lg transition duration-200 font-semibold text-lg
+                  className={`w-fit px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:shadow-lg transition duration-200 font-semibold text-lg
                   ${
                     isGeneratingPosts
                       ? "opacity-60 cursor-not-allowed"
@@ -479,7 +480,7 @@ export default function GeneratePostsContent() {
                       <span>Generating Posts...</span>
                     </div>
                   ) : (
-                    "Generate Post 🚀"
+                    "Generate Posts"
                   )}
                 </button>
               </form>
@@ -534,9 +535,44 @@ export default function GeneratePostsContent() {
                             : "false"
                         }
                       >
-                        <h4 className="font-semibold text-gray-800 mb-2">
-                          {persona.persona_name}
-                        </h4>
+                        <input
+                          id="zoom"
+                          type="checkbox"
+                          className="peer hidden"
+                        />
+                        <label
+                          htmlFor="zoom"
+                          className="flex items-center gap-4 mb-2"
+                        >
+                          <Image
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                            src={persona.persona_photo_url}
+                            alt="persona image"
+                          />
+                          <h4 className="font-semibold text-gray-800 mb-2">
+                            {persona.persona_name}
+                          </h4>
+                        </label>
+
+                        {/* <div
+                         className="fixed inset-0 bg-black/70 hidden peer-checked:flex items-center justify-center"
+                         > */}
+                        <label
+                          className="fixed inset-0 bg-black/70 hidden peer-checked:flex items-center justify-center"
+                          htmlFor="zoom"
+                        >
+                          <Image
+                            width={300}
+                            height={300}
+                            className="rounded-full"
+                            src={persona.persona_photo_url}
+                            alt="persona image"
+                          />
+                        </label>
+                        {/* </div> */}
+
                         <p className="text-sm text-gray-600 mb-3">
                           {persona.bio}
                         </p>
@@ -551,6 +587,7 @@ export default function GeneratePostsContent() {
               isOpen={showAddCampaign}
               onClose={() => setShowAddCampaign(false)}
               title=""
+              className=""
             >
               <CreateCampaignForm
                 handleCampaignSubmit={handleCampaignSubmit}
@@ -560,6 +597,7 @@ export default function GeneratePostsContent() {
             </CommonModal>
 
             <CommonModal
+              className=""
               isOpen={showAddPersonas}
               onClose={() => setShowAddPersonas(false)}
               title="Add New Persona"
@@ -573,36 +611,63 @@ export default function GeneratePostsContent() {
           </div>
         </div>
       </div>
-
       <LoadingOverlay
         isOpen={isGeneratingPosts}
         title="Generating Posts"
         message="Please wait while we create amazing content for your campaign..."
         showProgress={true}
       />
-
-      <div
-        ref={postsDivRef}
-        className={` w-full p-10 ${
-          isShow ? "flex" : "hidden"
-        } gap-3 overflow-x-auto`}
-        role="region"
-        aria-label="Generated posts"
-        aria-live="polite"
+      {/* <CommonModal
+        isOpen={postsData.length > 0 && displayPostMarkdown}
+        onClose={() => setDisplayPostMarkdown(false)}
+        title=""
+        className="!min-w-full !min-h-full !rounded-none"
       >
-        {postsData.length !== 0 &&
-          postsData.map((p: Post) => {
-            return (
-              <div className="" key={p.post_id}>
-                <PostCard
-                  postID={p.post_id}
-                  markdownText={p.body}
-                  platform={selectedPlatform.value}
-                />
-              </div>
-            );
-          })}
-      </div>
+        <div
+          ref={postsDivRef}
+          className={` w-full  p-10 ${
+            isShow ? "grid grid-cols-2" : "hidden"
+          } gap-3 overflow-x-auto`}
+          role="region"
+          aria-label="Generated posts"
+        >
+          {postsData.length !== 0 &&
+            postsData.map((p: Post) => {
+              return (
+                <div className="" key={p.post_id}>
+                  <PostCard
+                    postID={p.post_id}
+                    markdownText={p.body}
+                    platform={selectedPlatform.value}
+                  />
+                </div>
+              );
+            })}
+        </div>
+      </CommonModal> */}
+      {postsData.length > 0 && (
+        <div
+          ref={postsDivRef}
+          className={` w-full  p-10 ${
+            isShow ? "grid grid-cols-2" : "hidden"
+          } gap-3 overflow-x-auto`}
+          role="region"
+          aria-label="Generated posts"
+        >
+          {postsData.length !== 0 &&
+            postsData.map((p: Post) => {
+              return (
+                <div className="" key={p.post_id}>
+                  <PostCard
+                    postID={p.post_id}
+                    markdownText={p.body}
+                    platform={selectedPlatform.value}
+                  />
+                </div>
+              );
+            })}
+        </div>
+      )}
     </div>
   );
 }
