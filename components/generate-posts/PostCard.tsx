@@ -72,7 +72,7 @@ export default function PostCard({
 
   const handleEditClick = () => {
     setEditedText(currentText);
-    setIsEditModalOpen(true);
+    // setIsEditModalOpen(true);
     setData({
       currentText: currentText,
       postID: postID,
@@ -239,17 +239,6 @@ export default function PostCard({
         )}
 
         {/* Header with Edit Icon */}
-        <div className="flex justify-end p-3 border-b border-gray-100">
-          <Button
-            onClick={handleEditClick}
-            variant="ghost"
-            size="icon"
-            title="Edit post"
-            aria-label="Edit post"
-          >
-            <Pencil className="h-5 w-5" />
-          </Button>
-        </div>
 
         {/* Markdown Content */}
         <div
@@ -271,14 +260,29 @@ export default function PostCard({
           )}
         </div>
         {/* Schedule Button */}
+
         <div className="p-3 border-t border-gray-100">
-          <Button
+          {/* <Button
             onClick={handleScheduleClick}
             disabled={isScheduled}
             className="w-full"
             size="sm"
           >
             {isScheduled ? "Post Scheduled" : "Schedule Post"}
+          </Button> */}
+        </div>
+
+        <div className=" p-3 border-ts border-gray-100 flex w-full ">
+          <Button
+            onClick={handleEditClick}
+            variant={"ghost"}
+            size="sm"
+            className=""
+            title="Edit post"
+            aria-label="Edit post"
+          >
+            {/* {isScheduled ? "Post Scheduled" : "Schedule Post"} */}
+            <Pencil className="h-3 w-3" />
           </Button>
         </div>
       </div>

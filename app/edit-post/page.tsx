@@ -26,6 +26,8 @@ interface ScheduleData {
 }
 
 const Page = () => {
+  const [msg, SetMsg] = useState("");
+  const [regenrationCount, setRegenrationCount] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
   const text = useStore((state) => state.data?.currentText);
   const postID = useStore((state) => state.data?.postID);
@@ -119,9 +121,13 @@ const Page = () => {
     }
   };
 
-  const handleGenerateImage = async (regenerate = false) => {
+  const handleGenerateImage = async (regenerate: boolean) => {
     if (!postID) return;
-
+    if (regenrationCount >= 2) {
+      SetMsg("only 2 regenrations allowed ");
+      return;
+    }
+    setRegenrationCount((prev) => (prev >= 2 ? prev : prev + 1));
     setIsGenerating(true);
     try {
       const data = await genImage(postID, {
@@ -271,13 +277,14 @@ const Page = () => {
         <aside className="w-1/3 border-l border-border">
           <ImageUploader postID={postID} files={files} setFiles={setFiles} />
           <div className="bg-muted rounded-xl p-4">
-            {generatedImageData?.image_url ? (
-              <div className="space-y-3">
-                <>
-                  <div
-                    className="relative rounded-lg overflow-hidden cursor-pointer"
-                    onClick={() => setShowOverlay(true)}
-                  >
+            {/* {generatedImageData?.image_url ? ( */}
+            <div className="space-y-3">
+              <>
+                <div
+                  className="relative rounded-lg overflow-hidden cursor-pointer"
+                  onClick={() => setShowOverlay(true)}
+                >
+                  {generatedImageData && (
                     <Image
                       src={generatedImageData.image_url}
                       alt="Generated image"
@@ -285,72 +292,63 @@ const Page = () => {
                       height={400}
                       className="w-full h-auto"
                     />
+                  )}
+                </div>
+
+                {showOverlay && (
+                  <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 "
+                    onClick={() => setShowOverlay(false)}
+                  >
+                    <Image
+                      src={
+                        generatedImageData ? generatedImageData.image_url : ""
+                      }
+                      alt="Generated image"
+                      width={1200}
+                      height={1200}
+                      className="max-w-full max-h-full object-contain "
+                    />
                   </div>
+                )}
+              </>
 
-                  {showOverlay && (
-                    <div
-                      className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 "
-                      onClick={() => setShowOverlay(false)}
-                    >
-                      <Image
-                        src={generatedImageData.image_url}
-                        alt="Generated image"
-                        width={1200}
-                        height={1200}
-                        className="max-w-full max-h-full object-contain "
-                      />
-                    </div>
-                  )}
-                </>
+              <textarea
+                value={imageFeedback}
+                onChange={(e) => setImageFeedback(e.target.value)}
+                placeholder="Describe changes you'd like to make..."
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none text-sm resize-none"
+                rows={3}
+              />
 
-                <textarea
-                  value={imageFeedback}
-                  onChange={(e) => setImageFeedback(e.target.value)}
-                  placeholder="Describe changes you'd like to make..."
-                  className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none text-sm resize-none"
-                  rows={3}
-                />
+              {msg && (
+                <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
+                  <p className="text-sm text-destructive">{msg}</p>
+                </div>
+              )}
 
-                <button
-                  onClick={() => handleGenerateImage(true)}
-                  disabled={isGenerating}
-                  className="w-full px-3 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Regenerating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Regenerate Image
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
               <button
-                onClick={() => handleGenerateImage(false)}
+                onClick={() => handleGenerateImage(true)}
                 disabled={isGenerating}
                 className="w-full px-3 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
+                    Regenerating...
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Generate an Image
+                    Regenerate Image
                   </>
                 )}
               </button>
-            )}
+            </div>
           </div>
         </aside>
       )}
+
       {/* Schedule Modal */}
       {isScheduleModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -477,6 +475,7 @@ const Page = () => {
               >
                 Cancel
               </button>
+
               <button
                 onClick={handleScheduleSubmit}
                 disabled={!isScheduleValid || isScheduling}
