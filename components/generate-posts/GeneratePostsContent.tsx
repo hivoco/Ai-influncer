@@ -1,11 +1,20 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PostCard from "@/components/PostCard";
 import { Loader2, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CreatePersonaForm from "@/components/CreatePersonaForm";
 import {
   addNewCampaign,
+  API_BASE,
   createPersonas,
   genPost,
   getCampaignById,
@@ -30,6 +39,10 @@ import CreateCampaignForm from "../CreateCampaignForm";
 import { useModal } from "@/hooks/useModal";
 import Modal from "../Modal";
 import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import DynamicStreamingPostDisplay from "./StreamingPostDisplay";
+import StreamingPostDisplay from "./StreamingPostDisplay";
 
 export default function GeneratePostsContent() {
   const postsDivRef = useRef<HTMLDivElement>(null);
@@ -45,6 +58,7 @@ export default function GeneratePostsContent() {
     start_date: new Date().toISOString().split("T")[0],
     end_date: new Date().toISOString().split("T")[0],
   });
+
   const [formErrors, setFormErrors] = useState<{
     campaignDates?: string;
   }>({});
@@ -67,10 +81,8 @@ export default function GeneratePostsContent() {
     id: "",
     value: "",
     label: "",
-    icon: "",
+    icon: null,
   });
-
-  console.log(selectedPlatform);
 
   const [selectedPersona, setSelectedPersona] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +94,15 @@ export default function GeneratePostsContent() {
   const [personaData, setPersonaData] = useState<PersonaData>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isGeneratingPosts, setIsGeneratingPosts] = useState(false);
+
+  console.log(campaign, "campaign", "campaign");
+
+  const [displayStreaming, setDisplayStreaming] = useState(false);
+
+  const memoizedSetIsGeneratingPosts = useCallback((value: boolean) => {
+    setIsGeneratingPosts(value);
+  }, []);
+
   const { modalState, showModal, closeModal } = useModal();
 
   const [postsData, setPostsData] = useState<Post[]>([]);
@@ -264,9 +285,13 @@ export default function GeneratePostsContent() {
 
   const handleGeneratePost = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsGeneratingPosts(true);
+    setDisplayStreaming(true);
+    console.log("fxn called");
+
+    return;
 
     try {
-      setIsGeneratingPosts(true);
       if (!campaign || !campaignId) return;
       const postsList = await genPost({
         campaign_id: campaignId,
@@ -294,7 +319,7 @@ export default function GeneratePostsContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Loader2 className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" />
+          <Loader2 className="animate-spin h-12 w-12 text-primary mx-auto mb-4" />
           <p className="text-xl text-gray-700 font-semibold">
             Loading Campaign Data...
           </p>
@@ -311,13 +336,13 @@ export default function GeneratePostsContent() {
       {/* Header */}
       <header className="bg-white shadow-sm" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => router.push(`/brand/${brandId}`)}
-            className="text-indigo-600 hover:text-indigo-800 font-semibold"
             aria-label="Navigate back to brand page"
           >
             ← Back to Brand
-          </button>
+          </Button>
           <h1 className="text-2xl font-bold text-gray-900">Generate Post</h1>
           <div className="w-32" aria-hidden="true"></div>{" "}
           {/* Spacer for alignment */}
@@ -360,7 +385,7 @@ export default function GeneratePostsContent() {
                       type="text"
                       id="campaignName"
                       value={campaign.name}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 outline-none"
                       readOnly
                       aria-readonly="true"
                       aria-label="Campaign name (read-only)"
@@ -381,7 +406,7 @@ export default function GeneratePostsContent() {
                       id="campaignPrompt"
                       value={campaign.objective}
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 outline-none resize-none"
                       readOnly
                       aria-readonly="true"
                       aria-label="Campaign objective (read-only)"
@@ -389,92 +414,119 @@ export default function GeneratePostsContent() {
                   )}
                 </div>
 
-                {/* Social Media Platform Dropdown */}
-                <div>
-                  <label
-                    htmlFor="platform"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Social Media Platform *
-                  </label>
-                  <select
-                    id="platform"
-                    value={selectedPlatform.value}
-                    onChange={(e) => {
-                      const item = socialMediaPlatforms.find(
-                        (p) =>
-                          p.value.toLowerCase() === e.target.value.toLowerCase()
-                      );
-                      if (item) setSelectedPlatform(item);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    required
-                    disabled={isGeneratingPosts}
-                    aria-required="true"
-                    aria-label="Select social media platform"
-                    aria-disabled={isGeneratingPosts}
-                  >
-                    <option value="">Select a platform</option>
-                    {socialMediaPlatforms.map((platform) => (
-                      <option key={platform.value} value={platform.value}>
-                        {platform.icon} {platform.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 {/* Persona Selection */}
                 <div>
                   <label
-                    htmlFor="persona"
+                    htmlFor="options"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Select Persona *
                   </label>
-                  <select
-                    id="persona"
+
+                  <input
+                    type="text"
+                    name="persona"
                     value={selectedPersona}
-                    onChange={(e) => setSelectedPersona(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    onChange={() => {}}
                     required
+                    className="sr-only"
+                  />
+
+                  <Select
+                    value={selectedPersona}
+                    onValueChange={setSelectedPersona}
                     disabled={isGeneratingPosts}
-                    aria-required="true"
-                    aria-label="Select persona for post generation"
-                    aria-disabled={isGeneratingPosts}
                   >
-                    <option value="">Select a persona</option>
-                    {personaData.map((persona: Persona) => (
-                      <option
-                        key={persona.persona_id}
-                        value={persona.persona_id}
-                      >
-                        {persona.persona_name}
-                      </option>
+                    <SelectTrigger
+                      aria-required="true"
+                      aria-label="Select persona for post generation"
+                      aria-disabled={isGeneratingPosts}
+                    >
+                      <SelectValue placeholder="Select a persona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {personaData.map((persona: Persona) => (
+                        <SelectItem
+                          key={persona.persona_id}
+                          value={persona.persona_id}
+                        >
+                          {persona.persona_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Social Media Platform Dropdown */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select a Platform *
+                  </label>
+
+                  <input
+                    type="text"
+                    name="persona"
+                    value={selectedPersona}
+                    onChange={() => {}}
+                    required
+                    className="sr-only"
+                  />
+
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {socialMediaPlatforms.map((platform) => (
+                      <div key={platform.value}>
+                        <input
+                          type="radio"
+                          name="platform"
+                          value={platform.value}
+                          required
+                          checked={selectedPlatform?.value === platform.value}
+                          onChange={() => setSelectedPlatform(platform)}
+                          className="sr-only"
+                        />
+
+                        <Button
+                          type="button"
+                          onClick={() => setSelectedPlatform(platform)}
+                          aria-label={platform.label}
+                          title={platform.label}
+                          variant={
+                            platform.label === selectedPlatform.label
+                              ? "default"
+                              : "outline"
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <FontAwesomeIcon
+                            icon={platform.icon}
+                            className="w-5 h-5"
+                          />
+                          <span className="text-sm font-medium">
+                            {platform.label}
+                          </span>
+                        </Button>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 {/* Generate Button */}
-                <button
+                <Button
                   type="submit"
                   disabled={isGeneratingPosts}
-                  className={`w-fit px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:shadow-lg transition duration-200 font-semibold text-lg
-                  ${
-                    isGeneratingPosts
-                      ? "opacity-60 cursor-not-allowed"
-                      : "active:opacity-65"
-                  }`}
                   aria-label={
                     isGeneratingPosts
                       ? "Generating posts, please wait"
                       : "Generate post"
                   }
                   aria-busy={isGeneratingPosts}
+                  size="lg"
                 >
                   {isGeneratingPosts ? (
                     <div className="flex items-center justify-center gap-3">
                       <Loader2
-                        className="animate-spin text-white h-5 w-5"
+                        className="animate-spin h-5 w-5"
                         aria-hidden="true"
                       />
                       <span>Generating Posts...</span>
@@ -482,7 +534,7 @@ export default function GeneratePostsContent() {
                   ) : (
                     "Generate Posts"
                   )}
-                </button>
+                </Button>
               </form>
             </div>
           </div>
@@ -498,14 +550,15 @@ export default function GeneratePostsContent() {
                 <h3 className="text-xl font-bold text-gray-800 mb-4">
                   Available Personas
                 </h3>
-                <button
+                <Button
                   onClick={() => setShowAddPersonas(true)}
-                  className="size-5 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition"
+                  size="sm"
                   title="Add Persona"
                   aria-label="Add new persona"
+                  className="h-8 w-8 p-0"
                 >
-                  <Plus size={12} aria-hidden="true" />
-                </button>
+                  <Plus size={16} aria-hidden="true" />
+                </Button>
               </div>
 
               <div className="flex-1 overflow-y-auto">
@@ -525,7 +578,7 @@ export default function GeneratePostsContent() {
                         key={persona.persona_id}
                         className={`border rounded-lg p-4 hover:shadow-md transition ${
                           persona.persona_id === selectedPersona
-                            ? "border-purple-500 bg-purple-50"
+                            ? "border-primary bg-primary/5"
                             : "border-gray-200"
                         }`}
                         role="listitem"
@@ -611,18 +664,15 @@ export default function GeneratePostsContent() {
           </div>
         </div>
       </div>
-      <LoadingOverlay
+
+      {/* <LoadingOverlay
         isOpen={isGeneratingPosts}
         title="Generating Posts"
         message="Please wait while we create amazing content for your campaign..."
         showProgress={true}
-      />
-      {/* <CommonModal
-        isOpen={postsData.length > 0 && displayPostMarkdown}
-        onClose={() => setDisplayPostMarkdown(false)}
-        title=""
-        className="!min-w-full !min-h-full !rounded-none"
-      >
+      /> */}
+
+      {/* {postsData.length > 0 && (
         <div
           ref={postsDivRef}
           className={` w-full  p-10 ${
@@ -644,29 +694,23 @@ export default function GeneratePostsContent() {
               );
             })}
         </div>
-      </CommonModal> */}
-      {postsData.length > 0 && (
-        <div
-          ref={postsDivRef}
-          className={` w-full  p-10 ${
-            isShow ? "grid grid-cols-2" : "hidden"
-          } gap-3 overflow-x-auto`}
-          role="region"
-          aria-label="Generated posts"
-        >
-          {postsData.length !== 0 &&
-            postsData.map((p: Post) => {
-              return (
-                <div className="" key={p.post_id}>
-                  <PostCard
-                    postID={p.post_id}
-                    markdownText={p.body}
-                    platform={selectedPlatform.value}
-                  />
-                </div>
-              );
-            })}
-        </div>
+      )} */}
+
+      {displayStreaming && (
+        <StreamingPostDisplay
+          apiUrl={API_BASE + "/generator/generate-posts-stream-test"}
+          // campaignId="0941f2c9-1131-42d1-b35e-0ad7d73662b1"
+          campaignId={campaignId || ""}
+          // personaId="1bb95a62-e0c2-4839-ba3d-88952b1a00ca"
+          personaId={selectedPersona}
+          // platformId="eb685d58-be09-11f0-b03d-0a88edf1954d"
+          platformId={selectedPlatform.id}
+          // title="AI Creators Launch Campaign"s
+          title={campaign ? campaign.name : ""}
+          userPrompt={campaign ? campaign.objective : ""}
+          count={2}
+          setIsGeneratingPosts={memoizedSetIsGeneratingPosts}
+        />
       )}
     </div>
   );

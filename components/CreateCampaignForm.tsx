@@ -13,14 +13,14 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
 }) => {
   return (
     <form onSubmit={handleCampaignSubmit} className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+      <h2 className="text-2xl font-bold text-foreground mb-6">
         Register New Campaign
       </h2>
 
       <div>
         <label
           htmlFor="campaignName"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Campaign Name *
         </label>
@@ -31,7 +31,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
           onChange={(e) =>
             setCampaignForm({ ...campaignForm, name: e.target.value })
           }
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background"
           required
         />
       </div>
@@ -39,7 +39,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
       <div>
         <label
           htmlFor="campaignObjective"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Campaign Objective *
         </label>
@@ -53,7 +53,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
             })
           }
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none bg-background"
           required
         />
       </div>
@@ -62,7 +62,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
         <div>
           <label
             htmlFor="startDate"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Start Date *
           </label>
@@ -76,7 +76,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
                 start_date: e.target.value,
               })
             }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background"
             required
           />
         </div>
@@ -84,7 +84,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
         <div>
           <label
             htmlFor="endDate"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             End Date *
           </label>
@@ -98,7 +98,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
                 end_date: e.target.value,
               })
             }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background"
             required
           />
         </div>
@@ -106,7 +106,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
 
       <button
         type="submit"
-        className="px-6 py-3 rounded-lg font-semibold transition duration-200 bg-indigo-600 text-white hover:bg-indigo-700"
+        className="px-6 py-3 rounded-lg font-semibold transition duration-200 bg-primary text-primary-foreground hover:bg-primary/90"
       >
         Submit Campaign
       </button>

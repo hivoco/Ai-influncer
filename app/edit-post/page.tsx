@@ -1,20 +1,22 @@
 "use client";
 import { useState } from "react";
-import CustomMarkdown from "@/components/CustomMarkdown";
+import CustomMarkdown from "@/components/generate-posts/CustomMarkdown";
 import ImageUploader from "@/components/ImageUploader";
 import { useStore } from "@/lib/store";
-import { ChevronDown, ChevronRight, Loader2, X, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, X, Sparkles, Check, Clock } from "lucide-react";
 import Image from "next/image";
 import { socialMediaPlatforms } from "@/lib/constant";
 import { toISTTimestamp } from "@/utilities/posts.utility";
 import { genImage, schedulePost } from "@/services/apiCalls";
 import { toast, ToastContainer } from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface ScheduleData {
   date: string;
   time: string;
   platforms: string[];
 }
+
 const Page = () => {
   const [files, setFiles] = useState<File[]>([]);
   const text = useStore((state) => state.data?.currentText);
@@ -34,7 +36,7 @@ const Page = () => {
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
 
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("");
 
   const [generatedImageData, setGeneratedImageData] = useState<{
     image_url: string;
@@ -52,7 +54,7 @@ const Page = () => {
   const handleScheduleCancel = () => {
     setScheduleDate("");
     setScheduleTime("");
-    setSelectedPlatforms([]);
+    setSelectedPlatform("");
     setScheduleError(null);
     setIsScheduleModalOpen(false);
   };
@@ -73,30 +75,18 @@ const Page = () => {
   };
 
   const handlePlatformToggle = (platform: string) => {
-    setSelectedPlatforms((prev) => {
-      if (prev.includes(platform)) {
-        return prev.filter((p) => p !== platform);
-      } else {
-        return [...prev, platform];
-      }
-    });
+    setSelectedPlatform(selectedPlatform === platform ? "" : platform);
   };
 
   const handleScheduleSubmit = async () => {
-    if (scheduleDate && scheduleTime && selectedPlatforms.length > 0) {
+    if (scheduleDate && scheduleTime && selectedPlatform) {
       setIsScheduling(true);
       setScheduleError(null);
-
-      const scheduleData: ScheduleData = {
-        date: scheduleDate,
-        time: scheduleTime,
-        platforms: selectedPlatforms,
-      };
 
       try {
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
         if (!postID) return;
-        const res = await schedulePost(postID, istTime, selectedPlatforms[0]);
+        const res = await schedulePost(postID, istTime, selectedPlatform);
         console.log(res);
 
         // Check if the API response indicates success
@@ -108,7 +98,7 @@ const Page = () => {
           // Reset form and close modal
           // setScheduleDate("");
           // setScheduleTime("");
-          // setSelectedPlatforms([]);
+          // setSelectedPlatform("");
           // setIsScheduleModalOpen(false);
         } else {
           notify("Failed to schedule post. Please try again.");
@@ -149,16 +139,16 @@ const Page = () => {
   };
 
   const isScheduleValid =
-    scheduleDate && scheduleTime && selectedPlatforms.length > 0;
+    scheduleDate && scheduleTime && selectedPlatform;
 
   return (
-    <div className="bg-white w-full min-h-svh flex">
+    <div className="bg-background w-full min-h-svh flex">
       <div className="mx-auto container   flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-2xl font-bold text-foreground">Edit Post</h2>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="h-6 w-6" />
           </button>
@@ -169,7 +159,7 @@ const Page = () => {
           <label
             onClick={() => setDisplayPostContent((prev) => !prev)}
             htmlFor="postContent"
-            className="text-sm font-medium text-gray-700 mb-2 flex"
+            className="text-sm font-medium text-foreground mb-2 flex"
           >
             {displayPostContent ? (
               <ChevronDown size={18} />
@@ -184,14 +174,14 @@ const Page = () => {
               id="postContent"
               value={editedText ? editedText : ""}
               onChange={(e) => setEditedText(e.target.value)}
-              className="w-full h-50 overflow-y-auto px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 resize-none font-mono text-sm"
+              className="w-full h-50 overflow-y-auto px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:outline-none resize-none font-mono text-sm"
               placeholder="Write your post content here..."
             />
           )}
-          <div className="mt-4 py-4 bg-gray-50 rounded-lg prose prose-sm max-w-none text-gray-700">
+          <div className="mt-4 py-4 bg-muted rounded-lg prose prose-sm max-w-none text-foreground">
             <h3
               onClick={() => setDisplayMarkDown(!displayMarkDown)}
-              className="text-sm font-semibold text-gray-700 mb-2 flex cursor-pointer"
+              className="text-sm font-semibold text-foreground mb-2 flex cursor-pointer"
             >
               {displayMarkDown ? (
                 <ChevronDown size={18} />
@@ -204,12 +194,12 @@ const Page = () => {
             {displayMarkDown && currentText && (
               <div className="">
                 <div
-                  className={`flex-1 bg-gray-100 rounded-t-xl max-w-xl mx-auto p-4 overflow-y-auto prose prose-sm  text-gray-700  select-all`}
+                  className={`flex-1 bg-card rounded-t-xl max-w-xl mx-auto p-4 overflow-y-auto prose prose-sm  text-card-foreground  select-all`}
                 >
                   {<CustomMarkdown text={currentText} />}
                 </div>
                 {files.length > 0 && (
-                  <div className="relative max-w-xl mx-auto bg-gray-100 rounded-b-xl">
+                  <div className="relative max-w-xl mx-auto bg-card rounded-b-xl">
                     {files.length > 1 && (
                       <>
                         <button
@@ -239,6 +229,7 @@ const Page = () => {
                       alt={`Image ${(currentIndex || 0) + 1}`}
                       className="w-full h-64 object-cover rounded-xl"
                     />
+
                     {files.length > 1 && (
                       <div className="flex justify-center gap-2 mt-3">
                         {files.map((_, i) => (
@@ -247,8 +238,8 @@ const Page = () => {
                             onClick={() => setCurrentIndex(i)}
                             className={`w-2 h-2 rounded-full transition ${
                               i === (currentIndex || 0)
-                                ? "bg-blue-600"
-                                : "bg-gray-300"
+                                ? "bg-primary"
+                                : "bg-muted"
                             }`}
                           />
                         ))}
@@ -261,30 +252,14 @@ const Page = () => {
           </div>
         </div>
 
-        {/* Modal Footer */}
-        {/* <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <button
-            onClick={handleCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-6 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
-          >
-            Save Changes
-          </button>
-        </div> */}
-
-        <div className="p-3 border-t border-gray-100">
+        <div className="p-3 border-t border-border">
           <button
             onClick={handleScheduleClick}
             disabled={isScheduled}
             className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
               isScheduled
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-linear-to-r from-indigo-600 to-purple-600 text-white hover:shadow-md"
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-primary text-primary-foreground hover:shadow-md hover:bg-primary/90"
             }`}
           >
             {isScheduled ? "Post Scheduled" : "Schedule Post"}
@@ -293,10 +268,9 @@ const Page = () => {
       </div>
 
       {postID && (
-        <aside className="w-1/3 border-l border-gray-300">
+        <aside className="w-1/3 border-l border-border">
           <ImageUploader postID={postID} files={files} setFiles={setFiles} />
-
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4">
+          <div className="bg-muted rounded-xl p-4">
             {generatedImageData?.image_url ? (
               <div className="space-y-3">
                 <>
@@ -333,14 +307,14 @@ const Page = () => {
                   value={imageFeedback}
                   onChange={(e) => setImageFeedback(e.target.value)}
                   placeholder="Describe changes you'd like to make..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm resize-none"
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none text-sm resize-none"
                   rows={3}
                 />
 
                 <button
                   onClick={() => handleGenerateImage(true)}
                   disabled={isGenerating}
-                  className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full px-3 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isGenerating ? (
                     <>
@@ -359,7 +333,7 @@ const Page = () => {
               <button
                 onClick={() => handleGenerateImage(false)}
                 disabled={isGenerating}
-                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
                   <>
@@ -387,15 +361,15 @@ const Page = () => {
             toastClassName="!bg-black !text-white"
           />
 
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+          <div className="bg-background rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-border">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-2xl font-bold text-foreground">
                 Schedule Post
               </h2>
               <button
                 onClick={handleScheduleCancel}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-6 w-6" strokeWidth={2} />
               </button>
@@ -405,28 +379,24 @@ const Page = () => {
             <div className="flex-1 p-6 overflow-y-auto">
               {/* Error Message */}
               {scheduleError && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
-                  <p className="text-sm text-red-700">{scheduleError}</p>
+                <div className="mb-4 p-3 bg-destructive/10 border border-destructive rounded-lg">
+                  <p className="text-sm text-destructive">{scheduleError}</p>
                 </div>
               )}
 
               <div className="space-y-6">
                 {/* Date Selection */}
                 <div>
-                  <label
-                    htmlFor="scheduleDate"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
+                  <label htmlFor="scheduleDate" className="block text-sm font-medium text-foreground mb-2">
                     Select Date *
                   </label>
-
                   <input
                     type="date"
                     id="scheduleDate"
                     value={scheduleDate}
                     onChange={(e) => setScheduleDate(e.target.value)}
-                    min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-3 border text-gray-700  border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border text-foreground bg-background border-input rounded-lg focus:outline-none"
                   />
                 </div>
 
@@ -434,92 +404,74 @@ const Page = () => {
                 <div>
                   <label
                     htmlFor="scheduleTime"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     Select Time *
                   </label>
-                  <input
-                    type="time"
-                    id="scheduleTime"
-                    value={scheduleTime}
-                    onChange={(e) => setScheduleTime(e.target.value)}
-                    className="w-full px-4 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <input
+                      type="time"
+                      id="scheduleTime"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                      className="flex-1 px-4 py-3 border text-foreground bg-background border-input rounded-lg focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Social Media Platforms */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Select Platforms * (Choose one or more)
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Select a Platform *
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {socialMediaPlatforms.map((platform) => (
-                      <button
-                        key={platform.value}
-                        type="button"
-                        onClick={() => handlePlatformToggle(platform.value)}
-                        disabled={isScheduling}
-                        className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                          selectedPlatforms.includes(platform.value)
-                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 hover:border-gray-300 text-gray-700"
-                        } ${
-                          isScheduling ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <span className="text-2xl">{platform.icon}</span>
-                        <span className="font-medium">{platform.label}</span>
-                        {selectedPlatforms.includes(platform.value) && (
-                          <svg
-                            className="ml-auto h-5 w-5 text-indigo-600"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </button>
+                      <div key={platform.value}>
+                        <input
+                          type="radio"
+                          name="platform"
+                          value={platform.value}
+                          required
+                          checked={selectedPlatform === platform.value}
+                          onChange={() => handlePlatformToggle(platform.value)}
+                          className="sr-only"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => handlePlatformToggle(platform.value)}
+                          disabled={isScheduling}
+                          aria-label={platform.label}
+                          title={platform.label}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                            selectedPlatform === platform.value
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-input bg-background text-foreground hover:bg-muted"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          <FontAwesomeIcon
+                            icon={platform.icon}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm font-medium">
+                            {platform.label}
+                          </span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Selected Platforms Summary */}
-                {selectedPlatforms.length > 0 && (
-                  <div className="p-4 bg-indigo-50 rounded-lg">
-                    <p className="text-sm font-medium text-indigo-900 mb-2">
-                      Selected Platforms ({selectedPlatforms.length}):
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPlatforms.map((platformValue) => {
-                        const platform = socialMediaPlatforms.find(
-                          (p) => p.value === platformValue
-                        );
-                        return platform ? (
-                          <span
-                            key={platformValue}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-white rounded-full text-sm font-medium text-indigo-700"
-                          >
-                            <span>{platform.icon}</span>
-                            <span>{platform.label}</span>
-                          </span>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
               <button
                 onClick={handleScheduleCancel}
                 disabled={isScheduling}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -528,8 +480,8 @@ const Page = () => {
                 disabled={!isScheduleValid || isScheduling}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
                   isScheduleValid && !isScheduling
-                    ? "bg-linear-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    ? "bg-primary text-primary-foreground hover:shadow-lg hover:bg-primary/90"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
                 }`}
               >
                 {isScheduling && (

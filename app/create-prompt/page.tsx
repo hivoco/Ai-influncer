@@ -60,22 +60,22 @@ export default function CreatePromptPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-background">
       <header
-        className="bg-white shadow-sm border-b border-gray-200"
+        className="bg-card shadow-sm border-b border-border"
         role="banner"
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
           <button
             onClick={() => router.push("/dashboard")}
-            className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+            className="text-primary hover:text-primary/80 font-semibold transition-colors"
             aria-label="Navigate back to dashboard"
           >
             &larr; Back to Dashboard
           </button>
           <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-indigo-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-gray-900">
+            <Sparkles className="h-6 w-6 text-primary" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-foreground">
               Create New Prompt
             </h1>
           </div>
@@ -84,12 +84,12 @@ export default function CreatePromptPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8 border border-border">
           <div className="mb-4 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Generate Creative Prompts
             </h2>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Create compelling prompts for your campaigns across different
               content types
             </p>
@@ -103,10 +103,10 @@ export default function CreatePromptPage() {
             <div>
               <label
                 htmlFor="name"
-                className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
+                className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2"
               >
                 <FileText
-                  className="h-4 w-4 text-indigo-600"
+                  className="h-4 w-4 text-primary"
                   aria-hidden="true"
                 />
                 Prompt Name *
@@ -116,7 +116,7 @@ export default function CreatePromptPage() {
                 id="name"
                 value={promptForm.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                className="w-full px-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
                 placeholder="e.g., Zoom Shorts Holiday Campaign"
                 disabled={isSubmitting}
                 required
@@ -128,16 +128,16 @@ export default function CreatePromptPage() {
             <div>
               <label
                 htmlFor="category"
-                className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
+                className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2"
               >
-                <Tag className="h-4 w-4 text-indigo-600" aria-hidden="true" />
+                <Tag className="h-4 w-4 text-primary" aria-hidden="true" />
                 Category *
               </label>
               <select
                 id="category"
                 value={promptForm.category}
                 onChange={(e) => handleInputChange("category", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                className="w-full px-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
                 disabled={isSubmitting}
                 required
               >
@@ -153,10 +153,10 @@ export default function CreatePromptPage() {
             <div>
               <label
                 htmlFor="prompt_text"
-                className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
+                className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2"
               >
                 <Sparkles
-                  className="h-4 w-4 text-indigo-600"
+                  className="h-4 w-4 text-primary"
                   aria-hidden="true"
                 />
                 Prompt Text *
@@ -168,7 +168,7 @@ export default function CreatePromptPage() {
                   handleInputChange("prompt_text", e.target.value)
                 }
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition resize-none"
+                className="w-full px-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
                 placeholder="e.g., Create a short, high-energy video prompt for Zoom's festive ad highlighting teamwork and holiday joy.
                            #Tips for Great Prompts:
                             Be specific about the tone and style you want
@@ -180,7 +180,7 @@ export default function CreatePromptPage() {
                 required
                 minLength={10}
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Character count: {promptForm.prompt_text.length}
               </p>
             </div>
@@ -189,7 +189,7 @@ export default function CreatePromptPage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+                className="flex-1 px-6 py-3 border-2 border-input text-foreground rounded-lg hover:bg-muted transition font-semibold"
                 disabled={isSubmitting}
                 aria-label="Cancel and return to dashboard"
               >
@@ -198,10 +198,10 @@ export default function CreatePromptPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition font-semibold ${
+                className={`flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:shadow-lg transition font-semibold ${
                   isSubmitting
                     ? "opacity-60 cursor-not-allowed"
-                    : "hover:from-indigo-700 hover:to-purple-700"
+                    : "hover:bg-primary/90"
                 }`}
                 aria-label={
                   isSubmitting

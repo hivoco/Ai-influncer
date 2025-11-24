@@ -5,8 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'ai-infl-platform.s3.amazonaws.com',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
   },

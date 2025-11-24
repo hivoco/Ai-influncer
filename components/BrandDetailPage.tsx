@@ -212,7 +212,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Modal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -223,15 +223,15 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
         autoCloseDelay={5000}
       />
 
-      <header className="bg-white shadow-sm">
+      <header className="bg-card border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <button
             onClick={() => router.push("/dashboard")}
-            className="text-indigo-600 hover:text-indigo-800 font-semibold"
+            className="text-primary hover:text-primary/80 font-semibold transition-colors"
           >
             ← Back to Dashboard
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Brand Details</h1>
+          <h1 className="text-2xl font-bold text-foreground">Brand Details</h1>
         </div>
       </header>
 
@@ -241,8 +241,8 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
             onClick={() => setActiveForm("persona")}
             className={`px-6 py-3 rounded-lg font-semibold transition ${
               activeForm === "persona"
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-foreground border border-input hover:bg-muted"
             }`}
           >
             Create Persona
@@ -251,20 +251,20 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
             onClick={() => setActiveForm("campaign")}
             className={`px-6 py-3 rounded-lg font-semibold transition ${
               activeForm === "campaign"
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-foreground border border-input hover:bg-muted"
             }`}
           >
             Register New Campaign
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-card rounded-xl shadow-lg p-8 mb-8 border border-border">
           {activeForm === "persona" && (
-            <div className="mb-6  border-b border-b-gray-300 pb-6">
+            <div className="mb-6 border-b border-border pb-6">
               <div className="flex flex-col items-center">
                 <div className="relative group">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 border-4 border-white shadow-lg">
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-muted border-4 border-card shadow-lg">
                     {imagePreview ? (
                       <img
                         src={imagePreview}
@@ -272,7 +272,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                         <User className="w-12 h-12" strokeWidth={1.5} />
                       </div>
                     )}
@@ -303,13 +303,13 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                   {/* Camera Icon Badge */}
                   <label
                     htmlFor="persona-photo-upload"
-                    className={`absolute bottom-1 right-1 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 border-4 border-white ${
+                    className={`absolute bottom-1 right-1 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 border-4 border-card ${
                       uploadingImage
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-indigo-600 hover:bg-indigo-700 transform hover:scale-110 cursor-pointer"
+                        ? "bg-muted cursor-not-allowed"
+                        : "bg-primary hover:bg-primary/90 transform hover:scale-110 cursor-pointer"
                     }`}
                   >
-                    <ImageIcon className="w-5 h-5 text-white" />
+                    <ImageIcon className="w-5 h-5 text-primary-foreground" />
                   </label>
 
                   <input
@@ -323,7 +323,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 </div>
 
                 <div className="mt-4 text-center">
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-foreground">
                     {personaForm.persona_name || "Persona Photo"}
                   </p>
 
@@ -331,7 +331,7 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                     <button
                       type="button"
                       onClick={removeSelectedImage}
-                      className="mt-2 text-xs text-red-600 hover:text-red-700 font-medium transition inline-flex items-center gap-1"
+                      className="mt-2 text-xs text-destructive hover:text-destructive/80 font-medium transition inline-flex items-center gap-1"
                     >
                       <X className="w-3 h-3" />
                       Remove photo
@@ -358,10 +358,10 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Personas</h3>
+          <div className="bg-card rounded-xl shadow-lg p-6 border border-border">
+            <h3 className="text-xl font-bold text-foreground mb-6">Personas</h3>
             {personasData.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                 No personas created yet
               </p>
             ) : (
@@ -369,26 +369,26 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                 {personasData.map((persona) => (
                   <div
                     key={persona.persona_id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                    className="border border-input rounded-lg p-4 hover:shadow-md transition bg-background"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-gray-800">
+                      <h4 className="font-semibold text-foreground">
                         {persona.persona_name}
                       </h4>
                       <button
                         onClick={() => handleDeletePersona(persona.persona_id)}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                        className="text-destructive hover:text-destructive/80 text-sm transition"
                       >
                         Delete
                       </button>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{persona.bio}</p>
-                    <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
+                    <p className="text-sm text-muted-foreground mb-3">{persona.bio}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                       <div>Tone: {persona.tone_formal}/10</div>
                       <div>Witty: {persona.tone_witty}/10</div>
                       <div>Aspiration: {persona.tone_aspirational}/10</div>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="mt-2 text-xs text-muted-foreground">
                       <div className="font-medium">
                         CTA: {persona.default_cta}
                       </div>
@@ -399,10 +399,10 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
             )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Campaigns</h3>
+          <div className="bg-card rounded-xl shadow-lg p-6 border border-border">
+            <h3 className="text-xl font-bold text-foreground mb-6">Campaigns</h3>
             {campaignData.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                 No campaigns registered yet
               </p>
             ) : (
@@ -411,10 +411,10 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                   <Link
                     href={`/generate-posts?brand_id=${brandId}&campaign_id=${campaign.campaign_id}`}
                     key={campaign.campaign_id}
-                    className="border w-full border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                    className="border w-full border-input rounded-lg p-4 hover:shadow-md transition bg-background"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-gray-800">
+                      <h4 className="font-semibold text-foreground">
                         {campaign.name}
                       </h4>
                       <button
@@ -422,13 +422,13 @@ export default function BrandDetailPage({ campaignData, personasData }: Props) {
                           e.preventDefault();
                           handleDeleteCampaign(campaign.campaign_id);
                         }}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                        className="text-destructive hover:text-destructive/80 text-sm transition"
                       >
                         Delete
                       </button>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Objective:</span>{" "}
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Objective:</span>{" "}
                       {campaign.objective}
                     </p>
                   </Link>

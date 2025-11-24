@@ -13,12 +13,12 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
 }) => {
   return (
     <form onSubmit={handlePersonaSubmit} className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Persona</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Create Persona</h2>
 
       <div>
         <label
           htmlFor="personaName"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Name *
         </label>
@@ -32,7 +32,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
               persona_name: e.target.value,
             })
           }
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background"
           required
         />
       </div>
@@ -40,7 +40,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="personaBio"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Bio *
         </label>
@@ -54,7 +54,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
             })
           }
           rows={3}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none bg-background"
           required
         />
       </div>
@@ -62,7 +62,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="tone"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Tone: {personaForm.tone_formal}
         </label>
@@ -78,9 +78,9 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
               tone_formal: Number(e.target.value),
             })
           }
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>1</span>
           <span>10</span>
         </div>
@@ -89,7 +89,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="witty"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Witty: {personaForm.tone_witty}
         </label>
@@ -105,9 +105,9 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
               tone_witty: Number(e.target.value),
             })
           }
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>1</span>
           <span>10</span>
         </div>
@@ -116,7 +116,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="aspiration"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Aspiration: {personaForm.tone_aspirational}
         </label>
@@ -132,9 +132,9 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
               tone_aspirational: Number(e.target.value),
             })
           }
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>1</span>
           <span>10</span>
         </div>
@@ -143,7 +143,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="cta"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           CTA *
         </label>
@@ -157,7 +157,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
               default_cta: e.target.value,
             })
           }
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background"
           required
         />
       </div>
@@ -165,7 +165,7 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
       <div>
         <label
           htmlFor="safetyNotes"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Safety Notes *
         </label>
@@ -179,14 +179,14 @@ const CreatePersonaForm: React.FC<CreatePersonaFormProps> = ({
             })
           }
           rows={3}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+          className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none bg-background"
           required
         />
       </div>
 
       <button
         type="submit"
-        className="px-6 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition duration-200 font-semibold"
+        className="px-6 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition duration-200 font-semibold"
       >
         Create Persona
       </button>

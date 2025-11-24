@@ -28,7 +28,7 @@ export default function LoadingOverlay({
   showProgress = false,
   showSpinner = true,
   spinnerSize = "md",
-  spinnerColor = "text-indigo-600",
+  spinnerColor = "text-primary",
   maxWidth = "max-w-sm",
   className = "",
 }: LoadingOverlayProps) {
@@ -39,7 +39,7 @@ export default function LoadingOverlay({
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div
-          className={`bg-white rounded-2xl shadow-2xl p-8 ${maxWidth} w-full mx-4 ${className}`}
+          className={`bg-card rounded-2xl shadow-2xl p-8 ${maxWidth} w-full mx-4 border border-border ${className}`}
         >
           {children}
         </div>
@@ -51,7 +51,7 @@ export default function LoadingOverlay({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div
-        className={`bg-white rounded-2xl shadow-2xl p-8 ${maxWidth} w-full mx-4 ${className}`}
+        className={`bg-card rounded-2xl shadow-2xl p-8 ${maxWidth} w-full mx-4 border border-border ${className}`}
       >
         <div className="flex flex-col items-center">
           {showSpinner && (
@@ -60,14 +60,14 @@ export default function LoadingOverlay({
             />
           )}
           {title && (
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               {title}
             </h3>
           )}
-          {message && <p className="text-gray-600 text-center">{message}</p>}
+          {message && <p className="text-muted-foreground text-center">{message}</p>}
           {showProgress && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full animate-pulse"></div>
+            <div className="w-full bg-muted rounded-full h-2 mt-4 overflow-hidden">
+              <div className="bg-primary h-full rounded-full animate-pulse"></div>
             </div>
           )}
         </div>

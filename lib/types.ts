@@ -1,3 +1,5 @@
+import { IconDefinition } from "@fortawesome/free-brands-svg-icons"
+
 export interface Campaign {
   id: string
   name: string
@@ -165,5 +167,5 @@ export type Platform = {
   id: string;
   value: string;
   label: string;
-  icon: string;
+  icon: IconDefinition | null;
 };

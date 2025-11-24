@@ -113,7 +113,7 @@ export default function ImageUploader({
         />
 
         <label htmlFor="img" className="block cursor-pointer">
-          <div className="rounded-lg text-center hover:border-indigo-500 transition-all">
+          <div className="rounded-lg text-center hover:border-primary transition-all">
             <div className="flex gap-2 w-full">
               <Upload className="size-4 text-gray-400 mb-3" />
               <p className="text-gray-900 font-semibold text-sm">
@@ -252,8 +252,8 @@ export default function ImageUploader({
                 disabled={loading}
                 className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
                   loading
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg"
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    : "bg-primary text-primary-foreground hover:shadow-lg"
                 }`}
               >
                 {loading

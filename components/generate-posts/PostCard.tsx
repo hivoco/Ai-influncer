@@ -13,9 +13,12 @@ import { useState } from "react";
 import CustomMarkdown from "./CustomMarkdown";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import TypewriterComponent from "typewriter-effect";
+import { Button } from "@/components/ui/button";
+import { socialMediaPlatforms } from "@/lib/constant";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface PostCardProps {
+  imageUrl: string;
   postID: string;
   markdownText: string;
   platform: string;
@@ -30,6 +33,7 @@ interface ScheduleData {
 }
 
 export default function PostCard({
+  imageUrl,
   postID,
   markdownText,
   // onEdit,
@@ -39,7 +43,7 @@ export default function PostCard({
   const router = useRouter();
   const { data, setData } = useStore();
 
-  console.log(platform);
+  console.log("imageUrl", imageUrl);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -65,17 +69,6 @@ export default function PostCard({
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-
-  const socialMediaPlatforms = [
-    { value: "instagram", label: "Instagram", icon: "📷" },
-    { value: "facebook", label: "Facebook", icon: "👥" },
-    { value: "twitter", label: "Twitter/X", icon: "🐦" },
-    { value: "linkedin", label: "LinkedIn", icon: "💼" },
-    { value: "tiktok", label: "TikTok", icon: "🎵" },
-    { value: "youtube", label: "YouTube Shorts", icon: "▶️" },
-    { value: "reddit", label: "Reddit", icon: "🤖" },
-    { value: "wikipedia", label: "Wikipedia", icon: "📚" },
-  ];
 
   const handleEditClick = () => {
     setEditedText(currentText);
@@ -192,7 +185,7 @@ export default function PostCard({
   return (
     <>
       <div
-        className="w-full  min-w-[px] min-h-[450px] max-h-[600px] bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
+        className="w-full  min-h-[450px]  bg-white rounded-lg shadow-lg flex flex-col overflow-hidden border border-gray-200 relative
       "
       >
         {/* Scheduled Badge */}
@@ -211,13 +204,16 @@ export default function PostCard({
                     </span>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={handleRemoveSchedule}
-                  className="text-green-600 hover:text-green-800 ml-2"
+                  variant="ghost"
+                  size="icon"
                   title="Cancel schedule"
+                  aria-label="Cancel schedule"
+                  className="h-6 w-6 p-0"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
 
               {scheduledInfo.platforms.length > 0 && (
@@ -232,7 +228,7 @@ export default function PostCard({
                         className="text-xs"
                         title={platformData.label}
                       >
-                        {platformData.icon}
+                        <FontAwesomeIcon icon={platformData.icon} />
                       </span>
                     ) : null;
                   })}
@@ -244,37 +240,46 @@ export default function PostCard({
 
         {/* Header with Edit Icon */}
         <div className="flex justify-end p-3 border-b border-gray-100">
-          <button
+          <Button
             onClick={handleEditClick}
-            className="text-gray-500 hover:text-indigo-600 transition-colors"
+            variant="ghost"
+            size="icon"
             title="Edit post"
+            aria-label="Edit post"
           >
             <Pencil className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Markdown Content */}
         <div
-          className={`flex-1 p-4 overflow-y-auto prose prose-sm max-w-none text-gray-700 ${
+          className={`flex-1  p-4 tracking-wide overflow-y-auto prose prose-sm max-w-none text-gray-700 ${
             isScheduled ? "pt-14" : ""
           }`}
         >
           {<CustomMarkdown text={currentText} />}
         </div>
 
+        <div className="mt-2 ">
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={`Post ${imageUrl}`}
+              className="h-[300px] rounded-lg shadow-sm object-contain mx-auto"
+              loading="lazy"
+            />
+          )}
+        </div>
         {/* Schedule Button */}
         <div className="p-3 border-t border-gray-100">
-          <button
+          <Button
             onClick={handleScheduleClick}
             disabled={isScheduled}
-            className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              isScheduled
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-linear-to-r from-indigo-600 to-purple-600 text-white hover:shadow-md"
-            }`}
+            className="w-full"
+            size="sm"
           >
             {isScheduled ? "Post Scheduled" : "Schedule Post"}
-          </button>
+          </Button>
         </div>
       </div>
       {/* Edit Modal */}
@@ -284,12 +289,14 @@ export default function PostCard({
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
-              <button
+              <Button
                 onClick={handleCancel}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                variant="ghost"
+                size="icon"
+                aria-label="Close edit modal"
               >
                 <X className="h-6 w-6" />
-              </button>
+              </Button>
             </div>
 
             {/* Modal Content */}
@@ -311,7 +318,7 @@ export default function PostCard({
                   id="postContent"
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
-                  className="w-full h-50 overflow-y-auto px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 resize-none font-mono text-sm"
+                  className="w-full h-50 overflow-y-auto px-4 py-3 border border-gray-300 rounded-lg  outline-none text-gray-700 resize-none font-mono text-sm"
                   placeholder="Write your post content here..."
                 />
               )}
@@ -334,18 +341,10 @@ export default function PostCard({
 
             {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-              <button
-                onClick={handleCancel}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-              >
+              <Button onClick={handleCancel} variant="outline">
                 Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
-              >
-                Save Changes
-              </button>
+              </Button>
+              <Button onClick={handleSave}>Save Changes</Button>
             </div>
           </div>
         </div>
@@ -360,12 +359,14 @@ export default function PostCard({
               <h2 className="text-2xl font-bold text-gray-900">
                 Schedule Post
               </h2>
-              <button
+              <Button
                 onClick={handleScheduleCancel}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                variant="ghost"
+                size="icon"
+                aria-label="Close schedule modal "
               >
                 <X className="h-6 w-6" strokeWidth={2} />
-              </button>
+              </Button>
             </div>
 
             {/* Modal Content */}
@@ -392,7 +393,7 @@ export default function PostCard({
                     value={scheduleDate}
                     onChange={(e) => setScheduleDate(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-3 border text-gray-700  border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-3 border text-gray-700  border-gray-300 rounded-lg   outline-none"
                   />
                 </div>
 
@@ -409,7 +410,7 @@ export default function PostCard({
                     id="scheduleTime"
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
-                    className="w-full px-4 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-3 border text-gray-700 border-gray-300 rounded-lg  outline-none"
                   />
                 </div>
 
@@ -420,24 +421,26 @@ export default function PostCard({
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     {socialMediaPlatforms.map((platform) => (
-                      <button
+                      <Button
                         key={platform.value}
                         type="button"
                         onClick={() => handlePlatformToggle(platform.value)}
                         disabled={isScheduling}
-                        className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                        variant={
                           selectedPlatforms.includes(platform.value)
-                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 hover:border-gray-300 text-gray-700"
-                        } ${
-                          isScheduling ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                            ? "default"
+                            : "outline"
+                        }
+                        className="flex items-center gap-3 justify-start"
                       >
-                        <span className="text-2xl">{platform.icon}</span>
+                        {/* <span className="text-2xl">{platform.icon}</span> */}
+
+                        <FontAwesomeIcon icon={platform.icon} />
+
                         <span className="font-medium">{platform.label}</span>
                         {selectedPlatforms.includes(platform.value) && (
                           <svg
-                            className="ml-auto h-5 w-5 text-indigo-600"
+                            className="ml-auto h-5 w-5"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -448,15 +451,15 @@ export default function PostCard({
                             />
                           </svg>
                         )}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
 
                 {/* Selected Platforms Summary */}
                 {selectedPlatforms.length > 0 && (
-                  <div className="p-4 bg-indigo-50 rounded-lg">
-                    <p className="text-sm font-medium text-indigo-900 mb-2">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm font-medium text-foreground mb-2">
                       Selected Platforms ({selectedPlatforms.length}):
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -467,7 +470,7 @@ export default function PostCard({
                         return platform ? (
                           <span
                             key={platformValue}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-white rounded-full text-sm font-medium text-indigo-700"
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-background rounded-full text-sm font-medium text-foreground border border-input"
                           >
                             <span>{platform.icon}</span>
                             <span>{platform.label}</span>
@@ -482,27 +485,21 @@ export default function PostCard({
 
             {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-              <button
+              <Button
                 onClick={handleScheduleCancel}
                 disabled={isScheduling}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleScheduleSubmit}
                 disabled={!isScheduleValid || isScheduling}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
-                  isScheduleValid && !isScheduling
-                    ? "bg-linear-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                className="flex items-center gap-2"
               >
-                {isScheduling && (
-                  <Loader2 className="h-4 w-4 text-white animate-spin" />
-                )}
+                {isScheduling && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isScheduling ? "Scheduling..." : "Schedule Post"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
