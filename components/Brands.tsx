@@ -199,7 +199,7 @@ type BrandsProps = {
 };
 
 export default function Brands({ brands, latestCampaigns }: BrandsProps) {
-  console.log(brands, latestCampaigns);
+  // console.log(brands, latestCampaigns);
 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);

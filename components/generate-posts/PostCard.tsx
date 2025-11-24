@@ -43,7 +43,7 @@ export default function PostCard({
   const router = useRouter();
   const { data, setData } = useStore();
 
-  console.log("imageUrl", imageUrl);
+  // console.log("imageUrl", imageUrl);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -117,7 +117,7 @@ export default function PostCard({
       };
 
       try {
-        console.log(platform);
+        // console.log(platform);
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
         const res = await schedulePost(postID, istTime, platform);
         // Check if the API response indicates success
@@ -472,9 +472,7 @@ export default function PostCard({
                             key={platformValue}
                             className="inline-flex items-center gap-1 px-3 py-1 bg-background rounded-full text-sm font-medium text-foreground border border-input"
                           >
-                            <FontAwesomeIcon
-                              icon={platform.icon}
-                            />
+                            <FontAwesomeIcon icon={platform.icon} />
                             <span>{platform.label}</span>
                           </span>
                         ) : null;

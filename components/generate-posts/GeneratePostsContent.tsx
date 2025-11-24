@@ -95,7 +95,7 @@ export default function GeneratePostsContent() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isGeneratingPosts, setIsGeneratingPosts] = useState(false);
 
-  console.log(campaign, "campaign", "campaign");
+  // console.log(campaign, "campaign", "campaign");
 
   const [displayStreaming, setDisplayStreaming] = useState(false);
 
@@ -287,7 +287,7 @@ export default function GeneratePostsContent() {
     e.preventDefault();
     setIsGeneratingPosts(true);
     setDisplayStreaming(true);
-    console.log("fxn called");
+    // console.log("fxn called");
 
     return;
 

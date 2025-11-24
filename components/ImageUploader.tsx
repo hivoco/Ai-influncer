@@ -60,7 +60,7 @@ export default function ImageUploader({
   const handleUpload = async () => {
     if (files.length === 0) return;
 
-    console.log(files);
+    // console.log(files);
 
     setLoading(true);
     setUploadStatus(null);
@@ -81,7 +81,7 @@ export default function ImageUploader({
         setUploadStatus("success");
         setUploadedPostId(data.post_id);
         setUploadedImages([...uploadedImages, URL.createObjectURL(files[0])]);
-        console.log("Upload successful:", data);
+        // console.log("Upload successful:", data);
 
         setTimeout(() => {
           setFiles([]);

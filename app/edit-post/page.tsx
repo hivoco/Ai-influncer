@@ -3,7 +3,15 @@ import { useState } from "react";
 import CustomMarkdown from "@/components/generate-posts/CustomMarkdown";
 import ImageUploader from "@/components/ImageUploader";
 import { useStore } from "@/lib/store";
-import { ChevronDown, ChevronRight, Loader2, X, Sparkles, Check, Clock } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  X,
+  Sparkles,
+  Check,
+  Clock,
+} from "lucide-react";
 import Image from "next/image";
 import { socialMediaPlatforms } from "@/lib/constant";
 import { toISTTimestamp } from "@/utilities/posts.utility";
@@ -59,7 +67,7 @@ const Page = () => {
     setIsScheduleModalOpen(false);
   };
 
-  const notify = (message:string) => toast(message);
+  const notify = (message: string) => toast(message);
 
   const handleSave = () => {
     // setCurrentText(editedText);
@@ -87,19 +95,12 @@ const Page = () => {
         const istTime = toISTTimestamp(scheduleDate, scheduleTime);
         if (!postID) return;
         const res = await schedulePost(postID, istTime, selectedPlatform);
-        console.log(res);
+        // console.log(res);
 
         // Check if the API response indicates success
         if (res && res.status === "scheduled") {
-          console.log("scheduled successfully 110");
+          // console.log("scheduled successfully 110");
           notify("Post scheduled successfully");
-
-          // setIsScheduled(true);
-          // Reset form and close modal
-          // setScheduleDate("");
-          // setScheduleTime("");
-          // setSelectedPlatform("");
-          // setIsScheduleModalOpen(false);
         } else {
           notify("Failed to schedule post. Please try again.");
           setScheduleError(
@@ -138,8 +139,7 @@ const Page = () => {
     }
   };
 
-  const isScheduleValid =
-    scheduleDate && scheduleTime && selectedPlatform;
+  const isScheduleValid = scheduleDate && scheduleTime && selectedPlatform;
 
   return (
     <div className="bg-background w-full min-h-svh flex">
@@ -387,7 +387,10 @@ const Page = () => {
               <div className="space-y-6">
                 {/* Date Selection */}
                 <div>
-                  <label htmlFor="scheduleDate" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="scheduleDate"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Select Date *
                   </label>
                   <input
@@ -395,7 +398,7 @@ const Page = () => {
                     id="scheduleDate"
                     value={scheduleDate}
                     onChange={(e) => setScheduleDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full px-4 py-3 border text-foreground bg-background border-input rounded-lg focus:outline-none"
                   />
                 </div>
@@ -462,7 +465,6 @@ const Page = () => {
                     ))}
                   </div>
                 </div>
-
               </div>
             </div>
 
