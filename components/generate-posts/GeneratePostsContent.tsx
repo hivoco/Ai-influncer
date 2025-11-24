@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import PostCard from "@/components/PostCard";
+// import PostCard from "@/components/PostCard";
 import { Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -291,28 +291,28 @@ export default function GeneratePostsContent() {
 
     return;
 
-    try {
-      if (!campaign || !campaignId) return;
-      const postsList = await genPost({
-        campaign_id: campaignId,
-        persona_id: selectedPersona,
-        platform_id: selectedPlatform.id,
-        title: campaign.name,
-        user_prompt: campaign.objective,
-      });
+    // try {
+    //   if (!campaign || !campaignId) return;
+    //   const postsList = await genPost({
+    //     campaign_id: campaignId,
+    //     persona_id: selectedPersona,
+    //     platform_id: selectedPlatform.id,
+    //     title: campaign.name,
+    //     user_prompt: campaign.objective,
+    //   });
 
-      setPostsData(postsList.posts);
-      setIsShow(true);
-    } catch (error) {
-      console.error("Error generating posts:", error);
-      showModal(
-        "Error",
-        "Failed to generate posts. Please try again.",
-        "error"
-      );
-    } finally {
-      setIsGeneratingPosts(false);
-    }
+    //   setPostsData(postsList.posts);
+    //   setIsShow(true);
+    // } catch (error) {
+    //   console.error("Error generating posts:", error);
+    //   showModal(
+    //     "Error",
+    //     "Failed to generate posts. Please try again.",
+    //     "error"
+    //   );
+    // } finally {
+    //   setIsGeneratingPosts(false);
+    // }
   };
 
   if (isLoading) {

@@ -59,7 +59,7 @@ const Page = () => {
     setIsScheduleModalOpen(false);
   };
 
-  const notify = (message) => toast(message);
+  const notify = (message:string) => toast(message);
 
   const handleSave = () => {
     // setCurrentText(editedText);

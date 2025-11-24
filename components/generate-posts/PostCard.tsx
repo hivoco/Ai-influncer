@@ -472,7 +472,9 @@ export default function PostCard({
                             key={platformValue}
                             className="inline-flex items-center gap-1 px-3 py-1 bg-background rounded-full text-sm font-medium text-foreground border border-input"
                           >
-                            <span>{platform.icon}</span>
+                            <FontAwesomeIcon
+                              icon={platform.icon}
+                            />
                             <span>{platform.label}</span>
                           </span>
                         ) : null;
